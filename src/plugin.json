@@ -2,7 +2,7 @@
   "type": "datasource",
   "name": "Microsoft SQL Server",
   "id": "mssql",
-  "executable": "gpx_mssql",
+  "executable": "gpx_grafana_mssql_datasource",
   "category": "sql",
 
   "info": {
@@ -15,9 +15,22 @@
       "small": "img/sql_server_logo.svg",
       "large": "img/sql_server_logo.svg"
     },
+    "updated": "%TODAY%",
     "version": "%VERSION%",
+    "keywords": [
+      "mssql",
+      "microsoft",
+      "azure",
+      "sql",
+      "database",
+      "rdbms",
+      "datasource"
+    ],
     "links": [
-      { "name": "Raise issue", "url": "https://github.com/grafana/grafana/issues/new" },
+      {
+        "name": "Raise issue",
+        "url": "https://github.com/grafana/grafana-mssql-datasource/issues/new"
+      },
       {
         "name": "Documentation",
         "url": "https://grafana.com/docs/grafana/latest/datasources/mssql/"
