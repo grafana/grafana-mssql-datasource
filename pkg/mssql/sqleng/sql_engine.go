@@ -25,8 +25,8 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 	"github.com/grafana/grafana-plugin-sdk-go/data/sqlutil"
 
-	"github.com/grafana/grafana/pkg/tsdb/mssql/kerberos"
-	"github.com/grafana/grafana/pkg/tsdb/mssql/utils"
+	"github.com/grafana/grafana-mssql-datasource/pkg/mssql/kerberos"
+	"github.com/grafana/grafana-mssql-datasource/pkg/mssql/utils"
 )
 
 // MetaKeyExecutedQueryString is the key where the executed query should get stored
@@ -255,6 +255,7 @@ func (e *DataSourceHandler) getDB(ctx context.Context) (*sql.DB, error) {
 }
 
 func (e *DataSourceHandler) QueryData(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
+	ctx = azusercontext.WithUserFromQueryReq(ctx, req)
 	result := backend.NewQueryDataResponse()
 	ch := make(chan DBDataResponse, len(req.Queries))
 	var wg sync.WaitGroup

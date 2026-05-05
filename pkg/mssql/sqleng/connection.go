@@ -13,9 +13,9 @@ import (
 	mssql "github.com/microsoft/go-mssqldb"
 	"github.com/microsoft/go-mssqldb/azuread"
 
-	"github.com/grafana/grafana/pkg/tsdb/mssql/azure"
-	"github.com/grafana/grafana/pkg/tsdb/mssql/kerberos"
-	"github.com/grafana/grafana/pkg/tsdb/mssql/utils"
+	"github.com/grafana/grafana-mssql-datasource/pkg/mssql/azure"
+	"github.com/grafana/grafana-mssql-datasource/pkg/mssql/kerberos"
+	"github.com/grafana/grafana-mssql-datasource/pkg/mssql/utils"
 )
 
 // odbcNeedsEscape returns true if the value contains semicolon or closing brace,

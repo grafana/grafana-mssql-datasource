@@ -8,45 +8,14 @@ import (
 	_ "github.com/microsoft/go-mssqldb/integratedauth/krb5"
 
 	"github.com/grafana/grafana-azure-sdk-go/v2/azsettings"
-	"github.com/grafana/grafana-azure-sdk-go/v2/azusercontext"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/config"
-	"github.com/grafana/grafana/pkg/tsdb/mssql/sqleng"
+
+	"github.com/grafana/grafana-mssql-datasource/pkg/mssql/sqleng"
 )
-
-type Service struct {
-	im     instancemgmt.InstanceManager
-	logger log.Logger
-}
-
-func ProvideService() *Service {
-	logger := backend.NewLoggerWith("logger", "tsdb.mssql")
-	return &Service{
-		im:     datasource.NewInstanceManager(NewInstanceSettings(logger)),
-		logger: logger,
-	}
-}
-
-func (s *Service) getDataSourceHandler(ctx context.Context, pluginCtx backend.PluginContext) (*sqleng.DataSourceHandler, error) {
-	i, err := s.im.Get(ctx, pluginCtx)
-	if err != nil {
-		return nil, err
-	}
-	instance := i.(*sqleng.DataSourceHandler)
-	return instance, nil
-}
-
-func (s *Service) QueryData(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
-	dsHandler, err := s.getDataSourceHandler(ctx, req.PluginContext)
-	if err != nil {
-		return nil, err
-	}
-
-	return dsHandler.QueryData(azusercontext.WithUserFromQueryReq(ctx, req), req)
-}
 
 func NewInstanceSettings(logger log.Logger) datasource.InstanceFactoryFunc {
 	return func(ctx context.Context, settings backend.DataSourceInstanceSettings) (instancemgmt.Instance, error) {
@@ -113,14 +82,4 @@ func NewInstanceSettings(logger log.Logger) datasource.InstanceFactoryFunc {
 		logger.Debug("Successfully connected to MSSQL")
 		return handler, nil
 	}
-}
-
-// CheckHealth pings the connected SQL database
-func (s *Service) CheckHealth(ctx context.Context, req *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
-	dsHandler, err := s.getDataSourceHandler(ctx, req.PluginContext)
-	if err != nil {
-		return nil, err
-	}
-
-	return dsHandler.CheckHealth(azusercontext.WithUserFromHealthCheckReq(ctx, req), req)
 }
