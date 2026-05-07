@@ -1,3 +1,4 @@
+/* eslint-disable @grafana/i18n/no-untranslated-strings */
 import { css } from '@emotion/css';
 import { type SyntheticEvent } from 'react';
 
