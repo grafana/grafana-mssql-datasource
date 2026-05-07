@@ -1,8 +1,17 @@
 import type { JSX } from 'react';
 
 import { type AzureCredentials } from '@grafana/azure-sdk';
+import { type DataSourceJsonData, type DataSourceSettings } from '@grafana/data';
 import { type SQLOptions } from '@grafana/sql';
-import { type HttpSettingsBaseProps } from '@grafana/ui/internal';
+
+export interface HttpSettingsBaseProps<JSONData extends DataSourceJsonData = any, SecureJSONData = any> {
+  /** The configuration object of the data source */
+  dataSourceConfig: DataSourceSettings<JSONData, SecureJSONData>;
+  /** Callback for handling changes to the configuration object */
+  onChange: (config: DataSourceSettings<JSONData, SecureJSONData>) => void;
+  /** Show the Forward OAuth identity option */
+  showForwardOAuthIdentityOption?: boolean;
+}
 
 export enum MSSQLAuthenticationType {
   sqlAuth = 'SQL Server Authentication',
