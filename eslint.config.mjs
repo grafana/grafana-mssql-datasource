@@ -1,5 +1,6 @@
 import { defineConfig } from 'eslint/config';
 import baseConfig from './.config/eslint.config.mjs';
+import grafanaI18nPlugin from '@grafana/i18n/eslint-plugin';
 
 export default defineConfig([
   {
@@ -37,7 +38,13 @@ export default defineConfig([
   },
   ...baseConfig,
   {
+    plugins: {
+      '@grafana/i18n': grafanaI18nPlugin,
+    },
+  },
+  {
     rules: {
+      '@grafana/i18n/no-untranslated-strings': ['error', { calleesToIgnore: ['^css$', 'use[A-Z].*'] }],
       'react/react-in-jsx-scope': 'off',
       // Rules added in eslint-plugin-react-hooks v7 that did not exist in the grafana
       // monorepo's v5. Disable to match the effective behaviour of the source repo.
