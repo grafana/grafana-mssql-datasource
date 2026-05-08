@@ -17,7 +17,7 @@ func GetAzureCredentialDSNFragment(azureCredentials azcredentials.AzureCredentia
 		connStr += fmt.Sprintf("fedauth=%s;",
 			"ActiveDirectoryManagedIdentity")
 	case *azcredentials.AzureClientSecretCredentials:
-		connStr += fmt.Sprintf("user id=%s@%s;password=%s;fedauth=%s;", // trufflehog:ignore
+		connStr += fmt.Sprintf("user id=%s@%s;password=%s;fedauth=%s;",
 			c.ClientId,
 			c.TenantId,
 			c.ClientSecret,
@@ -25,7 +25,7 @@ func GetAzureCredentialDSNFragment(azureCredentials azcredentials.AzureCredentia
 		)
 	case *azcredentials.AzureEntraPasswordCredentials:
 		if azureSettings.AzureEntraPasswordCredentialsEnabled {
-			connStr += fmt.Sprintf("user id=%s;password=%s;applicationclientid=%s;fedauth=%s;", // trufflehog:ignore
+			connStr += fmt.Sprintf("user id=%s;password=%s;applicationclientid=%s;fedauth=%s;",
 				c.UserId,
 				c.Password,
 				c.ClientId,
@@ -38,7 +38,7 @@ func GetAzureCredentialDSNFragment(azureCredentials azcredentials.AzureCredentia
 		if userAssertion == "" {
 			return "", fmt.Errorf("user ID token is empty but required for current user authentication")
 		}
-		connStr += fmt.Sprintf("user id=%s;userassertion=%s;password=%s;fedauth=%s;", // trufflehog:ignore
+		connStr += fmt.Sprintf("user id=%s;userassertion=%s;password=%s;fedauth=%s;",
 			azureSettings.UserIdentityTokenEndpoint.ClientId, userAssertion, azureSettings.UserIdentityTokenEndpoint.ClientSecret, "ActiveDirectoryOnBehalfOf")
 	default:
 		return "", fmt.Errorf("unsupported azure authentication type")
