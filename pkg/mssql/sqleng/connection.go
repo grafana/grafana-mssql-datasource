@@ -154,9 +154,9 @@ func generateConnectionString(dsInfo DataSourceInfo, azureCredentials azcredenti
 		if odbcNeedsEscape(pass) || odbcNeedsEscape(user) {
 			user = escapeOdbcValue(user)
 			pass = escapeOdbcValue(pass)
-			connStr = "odbc:" + strings.TrimPrefix(connStr, "odbc:") + fmt.Sprintf("user id=%s;password=%s;", user, pass)
+			connStr = "odbc:" + strings.TrimPrefix(connStr, "odbc:") + fmt.Sprintf("user id=%s;password=%s;", user, pass) // trufflehog:ignore
 		} else {
-			connStr += fmt.Sprintf("user id=%s;password=%s;", user, pass)
+			connStr += fmt.Sprintf("user id=%s;password=%s;", user, pass) // trufflehog:ignore
 		}
 	}
 

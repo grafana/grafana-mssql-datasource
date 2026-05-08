@@ -86,7 +86,7 @@ func Krb5ParseAuthCredentials(host string, port string, db string, user string, 
 	} else if kerberosAuth.KeytabFilePath != "" {
 		krb5DriverParams += fmt.Sprintf("server=%s;database=%s;user id=%s;krb5-keytabfile=%s;", host, db, user, kerberosAuth.KeytabFilePath)
 	} else if kerberosAuth.KeytabFilePath == "" {
-		krb5DriverParams += fmt.Sprintf("server=%s;database=%s;user id=%s;password=%s;", host, db, user, pass)
+		krb5DriverParams += fmt.Sprintf("server=%s;database=%s;user id=%s;password=%s;", host, db, user, pass) // trufflehog:ignore
 	} else {
 		logger.Error("invalid kerberos configuration")
 		return ""
