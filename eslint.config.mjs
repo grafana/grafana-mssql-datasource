@@ -38,8 +38,14 @@ export default defineConfig([
   },
   ...baseConfig,
   {
+    name: 'grafana/i18n-rules',
     plugins: {
       '@grafana/i18n': grafanaI18nPlugin,
+    },
+    rules: {
+      // Warn on hardcoded user-visible strings in JSX — escalate to 'error' once string coverage is complete
+      '@grafana/i18n/no-untranslated-strings': ['warn', { calleesToIgnore: ['^css$', 'use[A-Z].*'] }],
+      '@grafana/i18n/no-translation-top-level': 'error',
     },
   },
   {
