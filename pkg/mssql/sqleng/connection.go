@@ -157,7 +157,7 @@ func generateConnectionString(dsInfo DataSourceInfo, azureCredentials azcredenti
 			// "password" is passed as an argument rather than embedded in the
 			// format string to prevent "password=%s" from appearing in the
 			// compiled binary, which triggers a false positive in Trufflehog
-			// scans.
+			// scans that run in CI.
 			connStr = "odbc:" + strings.TrimPrefix(connStr, "odbc:") + fmt.Sprintf("user id=%s;%s=%s;", user, "password", pass)
 		} else {
 			connStr += fmt.Sprintf("user id=%s;%s=%s;", user, "password", pass)

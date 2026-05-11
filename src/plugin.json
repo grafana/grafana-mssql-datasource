@@ -2,7 +2,7 @@
   "type": "datasource",
   "name": "Microsoft SQL Server",
   "id": "mssql",
-  "executable": "gpx_grafana_mssql_datasource",
+  "executable": "gpx_grafana-mssql-datasource",
   "category": "sql",
 
   "info": {
