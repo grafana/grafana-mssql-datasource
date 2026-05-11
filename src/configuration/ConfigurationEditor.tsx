@@ -1,4 +1,3 @@
-/* eslint-disable @grafana/i18n/no-untranslated-strings */
 import { css } from '@emotion/css';
 import { type SyntheticEvent } from 'react';
 
@@ -100,11 +99,17 @@ export const ConfigurationEditor = (props: DataSourcePluginOptionsEditorProps<Ms
 
   const buildAuthenticationOptions = (): Array<SelectableValue<MSSQLAuthenticationType>> => {
     const basicAuthenticationOptions: Array<SelectableValue<MSSQLAuthenticationType>> = [
+      // eslint-disable-next-line @grafana/i18n/no-untranslated-strings
       { value: MSSQLAuthenticationType.sqlAuth, label: 'SQL Server Authentication' },
+      // eslint-disable-next-line @grafana/i18n/no-untranslated-strings
       { value: MSSQLAuthenticationType.windowsAuth, label: 'Windows Authentication' },
+      // eslint-disable-next-line @grafana/i18n/no-untranslated-strings
       { value: MSSQLAuthenticationType.kerberosRaw, label: 'Windows AD: Username + password' },
+      // eslint-disable-next-line @grafana/i18n/no-untranslated-strings
       { value: MSSQLAuthenticationType.kerberosKeytab, label: 'Windows AD: Keytab file' },
+      // eslint-disable-next-line @grafana/i18n/no-untranslated-strings
       { value: MSSQLAuthenticationType.kerberosCredentialCache, label: 'Windows AD: Credential cache' },
+      // eslint-disable-next-line @grafana/i18n/no-untranslated-strings
       { value: MSSQLAuthenticationType.kerberosCredentialCacheLookupFile, label: 'Windows AD: Credential cache file' },
       { value: MSSQLAuthenticationType.azureAuth, label: MSSQLAuthenticationType.azureAuth },
     ];
@@ -113,8 +118,11 @@ export const ConfigurationEditor = (props: DataSourcePluginOptionsEditorProps<Ms
   };
 
   const encryptOptions: Array<SelectableValue<string>> = [
+    // eslint-disable-next-line @grafana/i18n/no-untranslated-strings
     { value: MSSQLEncryptOptions.disable, label: 'disable' },
+    // eslint-disable-next-line @grafana/i18n/no-untranslated-strings
     { value: MSSQLEncryptOptions.false, label: 'false' },
+    // eslint-disable-next-line @grafana/i18n/no-untranslated-strings
     { value: MSSQLEncryptOptions.true, label: 'true' },
   ];
 
