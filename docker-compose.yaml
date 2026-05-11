@@ -6,6 +6,8 @@ services:
     environment:
       # Grafana 13 enables splashScreen by default; the overlay blocks Playwright interactions.
       GF_FEATURE_TOGGLES_splashScreen: 'false'
+      # Enable localization for plugins.
+      GF_FEATURE_TOGGLES_localizationForPlugins: 'true'
     configs:
       # Run the externalized plugin in place of the core MSSQL plugin.
       # Without as_external=true, DuplicatePluginIDValidation (pkg/services/pluginsintegration/pipeline/steps.go)
