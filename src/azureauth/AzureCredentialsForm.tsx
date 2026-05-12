@@ -148,6 +148,7 @@ export const AzureCredentialsForm = (props: Props) => {
     if (userIdentityEnabled) {
       authTypeOptions.unshift({
         value: 'currentuser',
+        // eslint-disable-next-line @grafana/i18n/no-untranslated-strings
         label: 'Current User',
       });
     }

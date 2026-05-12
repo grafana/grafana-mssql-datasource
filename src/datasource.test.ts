@@ -12,7 +12,7 @@ import {
   type MetricFindValue,
   type TimeRange,
 } from '@grafana/data';
-import { type BackendSrv, type FetchResponse, getBackendSrv, setBackendSrv } from '@grafana/runtime';
+import { type BackendSrv, type FetchResponse, getBackendSrv } from '@grafana/runtime';
 import { type SQLQuery } from '@grafana/sql';
 
 import { MssqlDatasource } from './datasource';
@@ -63,13 +63,17 @@ const instanceSettings = {
   access: 'direct',
 } as DataSourceInstanceSettings<MssqlOptions>;
 
-let origBackendSrv: BackendSrv;
-beforeAll(() => {
-  origBackendSrv = getBackendSrv();
-});
-afterAll(() => {
-  setBackendSrv(origBackendSrv);
-});
+export const backendSrv = { fetch: jest.fn() } as unknown as BackendSrv;
+
+jest.mock('@grafana/runtime', () => ({
+  ...jest.requireActual('@grafana/runtime'),
+  getBackendSrv: () => backendSrv,
+  getTemplateSrv: () => {
+    return {
+      replace: (s: string) => s,
+    };
+  },
+}));
 
 describe('MSSQLDatasource', () => {
   const defaultRange = getDefaultTimeRange(); // it does not matter what value this has
