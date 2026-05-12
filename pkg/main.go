@@ -1,0 +1,19 @@
+package main
+
+import (
+	"os"
+
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
+
+	"github.com/grafana/grafana-mssql-datasource/pkg/mssql"
+)
+
+func main() {
+	logger := backend.NewLoggerWith("logger", "tsdb.mssql")
+	if err := datasource.Manage("mssql", mssql.NewInstanceSettings(logger), datasource.ManageOpts{}); err != nil {
+		log.DefaultLogger.Error(err.Error())
+		os.Exit(1)
+	}
+}

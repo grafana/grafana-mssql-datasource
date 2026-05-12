@@ -8,11 +8,13 @@ import (
 	"net"
 	"strings"
 
+	"github.com/grafana/grafana-azure-sdk-go/v2/azusercontext"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 )
 
 func (e *DataSourceHandler) CheckHealth(ctx context.Context, req *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
+	ctx = azusercontext.WithUserFromHealthCheckReq(ctx, req)
 	db, err := e.getDB(ctx)
 	if err != nil {
 		logCheckHealthError(ctx, e.dsInfo, err)
