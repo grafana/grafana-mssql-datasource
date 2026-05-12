@@ -3,10 +3,17 @@ apiVersion: 1
 datasources:
   - name: MSSQL
     type: mssql
+    uid: mssql-e2e
     access: proxy
     isDefault: true
     orgId: 1
     version: 1
     editable: true
-    jsonData: {}
-    secureJsonData: {}
+    url: mssql:1433
+    user: sa
+    jsonData:
+      database: grafanadb
+      encrypt: disable
+      authenticationType: SQL Server Authentication
+    secureJsonData:
+      password: Password123!
