@@ -26,10 +26,10 @@
     "@types/lodash": "4.17.20",
     "@types/node": "24.10.1",
     "@types/react": "18.3.18",
-    "i18next-cli": "^1.48.0",
+    "i18next-cli": "1.56.12",
     "ts-node": "10.9.2",
     "typescript": "6.0.2",
-    "webpack": "^5.105.0"
+    "webpack": "5.106.2"
   },
   "peerDependencies": {
     "@grafana/runtime": "*"
