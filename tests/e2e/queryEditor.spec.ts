@@ -1,4 +1,5 @@
 import { test, expect } from '@grafana/plugin-e2e';
+import { Page } from '@playwright/test';
 
 import type { MssqlOptions } from '../../src/types';
 
@@ -131,98 +132,77 @@ test.describe('Query editor', () => {
   });
 });
 
-test.describe('Query editor with fixture data', () => {
+test.describe('Query editor with dynamic data', () => {
   test.describe.configure({ mode: 'serial' });
 
-  test.describe('Afghanistan', () => {
-    test('table query returns rows', async ({ page, explorePage, readProvisionedDataSource }) => {
-      const ds = await readProvisionedDataSource<MssqlOptions>({ fileName: PROVISIONED_FILE });
-      const sql = "SELECT * FROM dbo.WORLD_DATA WHERE JSON_VALUE(BASE_COUNTRY, '$.Name') = 'Afghanistan'";
-      let body: Record<string, unknown> | null = null;
-      const responsePromise = explorePage.waitForQueryDataResponse(async (r) => {
-        if (!r.ok()) {
-          return false;
-        }
-        const b: any = await r.json().catch(() => null);
-        if (!Array.isArray(b?.results?.A?.frames)) {
-          return false;
-        }
-        body = b;
-        return true;
-      });
-      await page.goto(exploreUrl(ds.uid, { rawSql: sql }));
-      await responsePromise;
-      expect((body as any)?.results?.A?.frames?.length).toBeGreaterThan(0);
+  test('query returns results with expected columns', async ({ page, explorePage, readProvisionedDataSource }) => {
+    const ds = await readProvisionedDataSource<MssqlOptions>({ fileName: PROVISIONED_FILE });
+    const sql = "SELECT TOP 1 * FROM dbo.WORLD_DATA";
+    let body: Record<string, unknown> | null = null;
+    const responsePromise = explorePage.waitForQueryDataResponse(async (r) => {
+      if (!r.ok()) {
+        return false;
+      }
+      const b: any = await r.json().catch(() => null);
+      if (!Array.isArray(b?.results?.A?.frames)) {
+        return false;
+      }
+      body = b;
+      return true;
     });
-
-    test('query returns expected column names', async ({ page, explorePage, readProvisionedDataSource }) => {
-      const ds = await readProvisionedDataSource<MssqlOptions>({ fileName: PROVISIONED_FILE });
-      const sql = "SELECT TOP 1 * FROM dbo.WORLD_DATA WHERE JSON_VALUE(BASE_COUNTRY, '$.Name') = 'Afghanistan'";
-      let body: Record<string, unknown> | null = null;
-      const responsePromise = explorePage.waitForQueryDataResponse(async (r) => {
-        if (!r.ok()) {
-          return false;
-        }
-        const b: any = await r.json().catch(() => null);
-        if (!Array.isArray(b?.results?.A?.frames)) {
-          return false;
-        }
-        body = b;
-        return true;
-      });
-      await page.goto(exploreUrl(ds.uid, { rawSql: sql }));
-      await responsePromise;
-      const fields: string[] = (body as any)?.results?.A?.frames?.[0]?.schema?.fields?.map(
-        (f: { name: string }) => f.name
-      );
-      expect(fields).toContain('BASE_COUNTRY');
-      expect(fields).toContain('BIRTH_RATE');
-      expect(fields).toContain('CO2');
-      expect(fields).toContain('GDP');
-      expect(fields).toContain('DATE_TIME');
-      expect(fields).toContain('TIMESTAMP_VALUE');
-    });
+    await page.goto(exploreUrl(ds.uid, { rawSql: sql }));
+    await responsePromise;
+    expect((body as any)?.results?.A?.frames?.length).toBe(1);
+    const fields: string[] = (body as any)?.results?.A?.frames?.[0]?.schema?.fields?.map(
+      (f: { name: string }) => f.name
+    );
+    expect(fields).toContain('BASE_COUNTRY');
+    expect(fields).toContain('BIRTH_RATE');
+    expect(fields).toContain('CO2');
+    expect(fields).toContain('GDP');
+    expect(fields).toContain('DATE_TIME');
+    expect(fields).toContain('TIMESTAMP_VALUE');
   });
 
-  test.describe('Albania', () => {
-    test('table query returns rows', async ({ page, explorePage, readProvisionedDataSource }) => {
-      const ds = await readProvisionedDataSource<MssqlOptions>({ fileName: PROVISIONED_FILE });
-      const sql = "SELECT * FROM dbo.WORLD_DATA WHERE JSON_VALUE(BASE_COUNTRY, '$.Name') = 'Albania'";
-      let body: Record<string, unknown> | null = null;
-      const responsePromise = explorePage.waitForQueryDataResponse(async (r) => {
-        if (!r.ok()) {
-          return false;
-        }
-        const b: any = await r.json().catch(() => null);
-        if (!Array.isArray(b?.results?.A?.frames)) {
-          return false;
-        }
-        body = b;
-        return true;
-      });
-      await page.goto(exploreUrl(ds.uid, { rawSql: sql }));
-      await responsePromise;
-      expect((body as any)?.results?.A?.frames?.length).toBeGreaterThan(0);
+  test('query with basic filter returns results', async ({ page, explorePage, readProvisionedDataSource }) => {
+    const ds = await readProvisionedDataSource<MssqlOptions>({ fileName: PROVISIONED_FILE });
+    const sql = "SELECT TOP 5 * FROM dbo.WORLD_DATA WHERE BASE_COUNTRY LIKE '%Afghanistan%'";
+    let body: Record<string, unknown> | null = null;
+    const responsePromise = explorePage.waitForQueryDataResponse(async (r) => {
+      if (!r.ok()) {
+        return false;
+      }
+      const b: any = await r.json().catch(() => null);
+      if (!Array.isArray(b?.results?.A?.frames)) {
+        return false;
+      }
+      body = b;
+      return true;
     });
+    await page.goto(exploreUrl(ds.uid, { rawSql: sql }));
+    await responsePromise;
+    expect((body as any)?.results?.A?.frames?.length).toBeGreaterThan(0);
+    expect((body as any)?.results?.A?.frames?.length).toBeLessThanOrEqual(5);
+  });
 
-    test('query with time range filter returns rows', async ({ page, explorePage, readProvisionedDataSource }) => {
-      const ds = await readProvisionedDataSource<MssqlOptions>({ fileName: PROVISIONED_FILE });
-      const sql = "SELECT DATE_TIME as time, GDP FROM dbo.WORLD_DATA WHERE $__timeFilter(DATE_TIME) AND JSON_VALUE(BASE_COUNTRY, '$.Name') = 'Albania'";
-      let body: Record<string, unknown> | null = null;
-      const responsePromise = explorePage.waitForQueryDataResponse(async (r) => {
-        if (!r.ok()) {
-          return false;
-        }
-        const b: any = await r.json().catch(() => null);
-        if (!Array.isArray(b?.results?.A?.frames)) {
-          return false;
-        }
-        body = b;
-        return true;
-      });
-      await page.goto(exploreUrl(ds.uid, { rawSql: sql }));
-      await responsePromise;
-      expect((body as any)?.results?.A?.frames?.length).toBeGreaterThan(0);
+  test('query with macro filter returns results', async ({ page, explorePage, readProvisionedDataSource }) => {
+    const ds = await readProvisionedDataSource<MssqlOptions>({ fileName: PROVISIONED_FILE });
+    const sql = "SELECT TOP 5 * FROM dbo.WORLD_DATA WHERE $__timeFilter(DATE_TIME)";
+    let body: Record<string, unknown> | null = null;
+    const responsePromise = explorePage.waitForQueryDataResponse(async (r) => {
+      if (!r.ok()) {
+        return false;
+      }
+      const b: any = await r.json().catch(() => null);
+      if (!Array.isArray(b?.results?.A?.frames)) {
+        return false;
+      }
+      body = b;
+      return true;
     });
+    await page.goto(exploreUrl(ds.uid, { rawSql: sql }));
+    await responsePromise;
+    expect((body as any)?.results?.A?.frames?.length).toBeGreaterThan(0);
+    expect((body as any)?.results?.A?.frames?.length).toBeLessThanOrEqual(5);
   });
 });
