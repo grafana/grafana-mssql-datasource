@@ -15,7 +15,3 @@ jobs:
         DS_INSTANCE_URL=mssql:url
         DS_INSTANCE_DATABASE=mssql:json_database
         DS_INSTANCE_AUTHN_TYPE=mssql:json_authenticationType
-        DS_INSTANCE_MAX_OPEN_CX=mssql:json_maxOpenConns
-        DS_INSTANCE_MAX_IDLE_CX_AUTO=mssql:json_maxIdleConnsAuto
-        DS_INSTANCE_MAX_IDLE_CX=mssql:json_maxIdleConns
-        DS_INSTANCE_MAX_LIFETIME_CX=mssql:json_connMaxLifetime
