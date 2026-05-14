@@ -5,11 +5,6 @@ import type { MssqlOptions } from '../../src/types';
 const PLUGIN_TYPE = 'mssql';
 const PROVISIONED_FILE = 'datasources.yml';
 
-// Fixture data constants — seed=42
-// 24 rows per country (Afghanistan, Albania) at 10-minute intervals
-const FIXTURE_FROM_ISO = '2026-05-11T20:00:00.000Z';
-const FIXTURE_TO_ISO = '2026-05-12T00:00:00.000Z';
-
 function exploreUrl(uid: string, opts?: { rawSql?: string; format?: string }) {
   const query: Record<string, unknown> = {
     refId: 'A',
@@ -24,7 +19,7 @@ function exploreUrl(uid: string, opts?: { rawSql?: string; format?: string }) {
     explore: {
       datasource: uid,
       queries: [query],
-      range: { from: FIXTURE_FROM_ISO, to: FIXTURE_TO_ISO },
+      range: { from: 'now-4h', to: 'now' },
     },
   });
   return `/explore?orgId=1&schemaVersion=1&panes=${encodeURIComponent(panes)}`;
@@ -148,7 +143,7 @@ test.describe('Query editor with fixture data', () => {
 
     test('query with time range filter returns rows', async ({ page, explorePage, readProvisionedDataSource }) => {
       const ds = await readProvisionedDataSource<MssqlOptions>({ fileName: PROVISIONED_FILE });
-      const sql = `SELECT DATE_TIME as time, GDP FROM dbo.WORLD_DATA WHERE DATE_TIME >= '2026-05-11 20:00:00' AND DATE_TIME < '2026-05-12 00:00:00' AND JSON_VALUE(BASE_COUNTRY, '$.Name') = 'Albania'`;
+      const sql = "SELECT DATE_TIME as time, GDP FROM dbo.WORLD_DATA WHERE $__timeFilter(DATE_TIME) AND JSON_VALUE(BASE_COUNTRY, '$.Name') = 'Albania'";
       let body: Record<string, unknown> | null = null;
       const responsePromise = explorePage.waitForQueryDataResponse(async (r) => {
         if (!r.ok()) {
