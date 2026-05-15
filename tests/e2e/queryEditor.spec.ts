@@ -53,20 +53,20 @@ test.describe('Query editor', () => {
       }
     );
 
-    test('renders format dropdown in all modes', async ({ page, readProvisionedDataSource }) => {
+    test('renders format dropdown in all modes', async ({ page, explorePage, readProvisionedDataSource }) => {
       const ds = await readProvisionedDataSource<MssqlOptions>({ fileName: PROVISIONED_FILE });
       await page.goto(exploreUrl(ds.uid));
-      const formatSelect = page.getByTestId('query-editor-row').getByRole('combobox', { name: 'Format' });
+      const formatSelect = explorePage.getQueryEditorRow('A').getByRole('combobox', { name: 'Format' });
       await switchEditorMode(page, 'Builder');
       await expect(formatSelect).toBeVisible();
       await switchEditorMode(page, 'Code');
       await expect(formatSelect).toBeVisible();
     });
 
-    test('renders run query button in all modes', async ({ page, readProvisionedDataSource }) => {
+    test('renders run query button in all modes', async ({ page, explorePage, readProvisionedDataSource }) => {
       const ds = await readProvisionedDataSource<MssqlOptions>({ fileName: PROVISIONED_FILE });
       await page.goto(exploreUrl(ds.uid));
-      const runQueryButton = page.getByTestId('query-editor-row').getByRole('button', { name: 'Run query', exact: true });
+      const runQueryButton = explorePage.getQueryEditorRow('A').getByRole('button', { name: 'Run query', exact: true });
       await switchEditorMode(page, 'Builder');
       await expect(runQueryButton).toBeVisible();
       await switchEditorMode(page, 'Code');
@@ -92,12 +92,12 @@ test.describe('Query editor', () => {
       await expect(page.getByRole('combobox', { name: 'Alias' })).toBeVisible();
     });
 
-    test('can select a dataset, table, and column', async ({ page, readProvisionedDataSource }) => {
+    test('can select a dataset, table, and column', async ({ page, explorePage, readProvisionedDataSource }) => {
       const ds = await readProvisionedDataSource<MssqlOptions>({ fileName: PROVISIONED_FILE });
       await page.goto(exploreUrl(ds.uid));
       await switchEditorMode(page, 'Builder');
 
-      const queryRow = page.getByTestId('query-editor-row');
+      const queryRow = explorePage.getQueryEditorRow('A');
 
       await page.getByRole('combobox', { name: 'Dataset' }).click();
       await page.getByRole('option', { name: 'grafanadb' }).click();
