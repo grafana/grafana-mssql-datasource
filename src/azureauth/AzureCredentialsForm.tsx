@@ -354,5 +354,3 @@ export const AzureCredentialsForm = (props: Props) => {
     </div>
   );
 };
-
-export default AzureCredentialsForm;
