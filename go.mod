@@ -8,7 +8,7 @@ require (
 	github.com/magefile/mage v1.17.1
 	github.com/microsoft/go-mssqldb v1.10.0
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/net v0.54.0
+	golang.org/x/net v0.55.0
 )
 
 require (
