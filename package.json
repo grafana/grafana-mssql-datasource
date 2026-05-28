@@ -11,7 +11,7 @@
     "lint:fix": "npm run lint -- --fix && prettier --write --list-different .",
     "e2e": "playwright test",
     "server": "docker compose up --build",
-    "sign": "npx --yes @grafana/sign-plugin@latest",
+    "sign": "npx --yes --package @grafana/sign-plugin@3.2.2 sign-plugin",
     "i18n-extract": "i18next-cli extract --sync-primary"
   },
   "author": "Grafana",
@@ -80,5 +80,5 @@
     "react-dom": "18.3.1",
     "react-select-event": "5.5.1"
   },
-  "packageManager": "npm@11.6.1"
+  "packageManager": "npm@11.15.0"
 }
