@@ -8,6 +8,8 @@ on:
     branches:
       - main
 
+permissions: {}
+
 jobs:
   upload-sources-to-crowdin:
     uses: grafana/grafana-github-actions/.github/workflows/crowdin-upload.yml@main
