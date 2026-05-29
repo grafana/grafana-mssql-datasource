@@ -65,7 +65,7 @@
   },
   "engines": {
     "node": ">=24",
-    "npm": ">=11.15.0"
+    "npm": ">=11.12.1"
   },
   "dependencies": {
     "@emotion/css": "11.13.5",
@@ -81,5 +81,5 @@
     "react-dom": "18.3.1",
     "react-select-event": "5.5.1"
   },
-  "packageManager": "npm@11.6.1"
+  "packageManager": "npm@11.12.1"
 }
