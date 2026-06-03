@@ -12,6 +12,7 @@
     "e2e": "playwright test",
     "server": "docker compose up --build",
     "sign": "npx --yes --package @grafana/sign-plugin@3.2.2 sign-plugin",
+    "docs": "cd docs && make docs",
     "i18n-extract": "i18next-cli extract --sync-primary"
   },
   "author": "Grafana",
