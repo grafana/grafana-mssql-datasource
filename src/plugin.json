@@ -2,7 +2,7 @@
   "type": "datasource",
   "name": "Microsoft SQL Server",
   "id": "mssql",
-  "executable": "gpx_mssql",
+  "executable": "gpx_grafana-mssql-datasource",
   "category": "sql",
   "alerting": true,
   "annotations": true,
@@ -22,7 +22,17 @@
       "small": "img/sql_server_logo.svg",
       "large": "img/sql_server_logo.svg"
     },
+    "updated": "%TODAY%",
     "version": "%VERSION%",
+    "keywords": [
+      "mssql",
+      "microsoft",
+      "azure",
+      "sql",
+      "database",
+      "rdbms",
+      "datasource"
+    ],
     "links": [
       {
         "name": "Raise issue",
