@@ -1,0 +1,23 @@
+name: Scheduled Cloud end-to-end tests
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  playwright-cloud:
+    permissions:
+      contents: read
+      id-token: write
+    uses: grafana/data-sources-ci-workflows/.github/workflows/playwright-cloud.yml@main
+    secrets: inherit
+    with:
+      repo-secrets: |
+        DS_INSTANCE_NAME=mssql:name
+        DS_INSTANCE_URL=mssql:url
+        DS_INSTANCE_DATABASE=mssql:json_database
+        DS_INSTANCE_AUTHN_TYPE=mssql:json_authenticationType
