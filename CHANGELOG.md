@@ -1,5 +1,5 @@
 # Changelog
 
-## 13.0.1 (Unreleased)
+## 13.0.1
 
-Initial release.
+- Initial release of the Microsoft SQL Server data source as an external data source.
