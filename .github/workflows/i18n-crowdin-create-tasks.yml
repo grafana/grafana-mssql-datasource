@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: 'Get vault secrets'
         id: vault-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@2c6a031846caccb893594248836c4f42bf73a125 # main
+        uses: grafana/shared-workflows/actions/get-vault-secrets@35e60f8164f0eebe94cec347d6f985345c0e133e # main
         with:
           # Vault secret paths:
           # - ci/repo/grafana/grafana-mssql-datasource/grafana-frontend-crowdin-token
