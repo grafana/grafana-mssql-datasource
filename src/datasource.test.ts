@@ -51,10 +51,12 @@ const customVariableModel: CustomVariableModel = {
   rootStateKey: null,
 };
 
-jest.mock('@grafana/data', () => ({
-  ...jest.requireActual('@grafana/data'),
-  generateUUID: () => '0000',
-}));
+// jest-environment-jsdom 29 ships jsdom 20 which lacks crypto.randomUUID
+// Replace the following with jest.spyOn after upgrading to Jest 30:
+Object.defineProperty(globalThis.crypto, 'randomUUID', {
+  value: () => '0000',
+});
+// jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('0000');
 
 const instanceSettings = {
   uid: 'mssql-datasource',
