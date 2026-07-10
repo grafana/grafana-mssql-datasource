@@ -67,17 +67,17 @@
   },
   "engines": {
     "node": ">=24",
-    "npm": ">=11.12.1"
+    "npm": ">=11.6.2"
   },
   "dependencies": {
     "@emotion/css": "11.13.5",
     "@grafana/azure-sdk": "0.1.0",
-    "@grafana/data": "13.0.2",
-    "@grafana/i18n": "13.0.2",
-    "@grafana/runtime": "13.0.2",
-    "@grafana/schema": "13.0.2",
-    "@grafana/sql": "13.0.2",
-    "@grafana/ui": "13.0.2",
+    "@grafana/data": "13.1.0",
+    "@grafana/i18n": "13.1.0",
+    "@grafana/runtime": "13.1.0",
+    "@grafana/schema": "13.1.0",
+    "@grafana/sql": "13.1.0",
+    "@grafana/ui": "13.1.0",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
