@@ -27,7 +27,6 @@ import (
 
 	"github.com/grafana/grafana-mssql-datasource/pkg/mssql/kerberos"
 	"github.com/grafana/grafana-mssql-datasource/pkg/mssql/utils"
-	"github.com/grafana/grafana/pkg/tsdb/sqlmacro"
 )
 
 // MetaKeyExecutedQueryString is the key where the executed query should get stored
@@ -348,7 +347,7 @@ func (e *DataSourceHandler) executeQuery(query backend.DataQuery, wg *sync.WaitG
 	// so split it off before interpolation and re-append it afterwards. This
 	// keeps it out of comment stripping and macro substitution, and prevents a
 	// macro from completing across the comment boundary in either direction.
-	rawSQL, sqlCommenterTag := sqlmacro.SplitTrailingSQLCommenter(queryJson.RawSql, "--")
+	rawSQL, sqlCommenterTag := SplitTrailingSQLCommenter(queryJson.RawSql, "--")
 
 	// global substitutions
 	interpolatedQuery := Interpolate(query, timeRange, e.dsInfo.JsonData.TimeInterval, rawSQL)

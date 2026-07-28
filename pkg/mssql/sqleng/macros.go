@@ -2,14 +2,16 @@ package sqleng
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/gtime"
-
-	"github.com/grafana/grafana/pkg/tsdb/sqlmacro"
 )
+
+// macroRegExp matches a complete Grafana macro call of the form $name(...).
+var macroRegExp = regexp.MustCompile(`\$([_a-zA-Z0-9]+)\(([^\)]*)\)`)
 
 // stripSQLComments removes SQL line comments (--) and block comments (/* */)
 // from the query string. It is quote-aware: comment sequences inside single-quoted
@@ -120,7 +122,7 @@ func (m *msSQLMacroEngine) Interpolate(query *backend.DataQuery, timeRange backe
 
 	var macroError error
 
-	sql = m.ReplaceAllStringSubmatchFunc(sqlmacro.RegExp, sql, func(groups []string) string {
+	sql = m.ReplaceAllStringSubmatchFunc(macroRegExp, sql, func(groups []string) string {
 		args := strings.Split(groups[2], ",")
 		for i, arg := range args {
 			args[i] = strings.Trim(arg, " ")
