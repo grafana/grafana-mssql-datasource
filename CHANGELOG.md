@@ -1,5 +1,9 @@
 # Changelog
 
+## 13.0.3
+
+- Bump go v1.26.7 and grafana-plugin-sdk-go v0.296.4 ([#80](https://github.com/grafana/grafana-mssql-datasource/pull/80))
+
 ## 13.0.2
 
 - Fix: Don't send twice to the result channel when `processResponse` fails ([#74](https://github.com/grafana/grafana-mssql-datasource/pull/74))
