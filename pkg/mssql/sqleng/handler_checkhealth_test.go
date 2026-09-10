@@ -35,8 +35,8 @@ func TestErrToHealthCheckResult(t *testing.T) {
 			err:  errors.Join(errors.New("foo"), &mssql.Error{Message: "error foo occurred in mssql server"}),
 			want: &backend.CheckHealthResult{
 				Status:      backend.HealthStatusError,
-				Message:     "foo\nmssql: error foo occurred in mssql server",
-				JSONDetails: []byte(`{"errorDetailsLink":"https://grafana.com/docs/grafana/latest/datasources/mssql","verboseMessage":"foo\nmssql: error foo occurred in mssql server"}`),
+				Message:     "foo\nmssql: error foo occurred in mssql server (0)",
+				JSONDetails: []byte(`{"errorDetailsLink":"https://grafana.com/docs/grafana/latest/datasources/mssql","verboseMessage":"foo\nmssql: error foo occurred in mssql server (0)"}`),
 			},
 		},
 		{
