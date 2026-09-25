@@ -1,5 +1,9 @@
 # Changelog
 
+## 13.0.6
+
+- Fix security vulnerabilities (CVE-2026-84375)
+
 ## 13.0.5
 
 - Fixes high-severity CVEs in fast-uri and browserslist dependencies ([#86](https://github.com/grafana/grafana-mssql-datasource/pull/86))
