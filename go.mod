@@ -1,6 +1,6 @@
 module github.com/grafana/grafana-mssql-datasource
 
-go 1.26.7
+go 1.27.3
 
 require (
 	github.com/grafana/grafana-azure-sdk-go/v2 v2.5.0
