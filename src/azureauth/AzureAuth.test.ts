@@ -10,6 +10,7 @@ import { config } from '@grafana/runtime';
 
 import {
   dataSourceSettingsWithMsiCredentials,
+  dataSourceSettingsWithWorkloadIdentityCredentials,
   dataSourceSettingsWithClientSecretOnServer,
   dataSourceSettingsWithClientSecretInSecureJSONData,
 } from './AzureAuth.testMocks';
@@ -61,6 +62,29 @@ describe('AzureAuth', () => {
           dataSourceSettingsWithMsiCredentials
         );
         expect(resultForManagedIdentityEnabledInJSONButDisabledInConfig).toEqual({
+          authType: 'clientsecret',
+          azureCloud: 'AzureCloud',
+        });
+      });
+
+      it('should return the correct workload identity credentials', () => {
+        // If `dataSourceSettings.authType === 'workloadidentity'` && `config.azure.workloadIdentityEnabled === true`.
+        jest.mocked(config).azure.managedIdentityEnabled = false;
+        jest.mocked(config).azure.workloadIdentityEnabled = true;
+        const resultForWorkloadIdentityEnabled = getCredentials(
+          // @ts-ignore
+          dataSourceSettingsWithWorkloadIdentityCredentials
+        );
+        expect(resultForWorkloadIdentityEnabled).toEqual({ authType: 'workloadidentity' });
+
+        // If `dataSourceSettings.authType === 'workloadidentity'` but `config.azure.workloadIdentityEnabled !== true`.
+        // Default to basic client secret credentials.
+        jest.mocked(config).azure.workloadIdentityEnabled = false;
+        const resultForWorkloadIdentityEnabledInJSONButDisabledInConfig = getCredentials(
+          // @ts-ignore
+          dataSourceSettingsWithWorkloadIdentityCredentials
+        );
+        expect(resultForWorkloadIdentityEnabledInJSONButDisabledInConfig).toEqual({
           authType: 'clientsecret',
           azureCloud: 'AzureCloud',
         });
@@ -142,6 +166,33 @@ describe('AzureAuth', () => {
             }
           )
         ).toThrow('Managed Identity authentication is not enabled in Grafana config.');
+      });
+
+      it('should update the credentials for workload identity correctly', () => {
+        // If `config.azure.workloadIdentityEnabled === true`.
+        jest.mocked(config).azure.workloadIdentityEnabled = true;
+        const resultForWorkloadIdentityCredentials = updateDatasourceCredentials(
+          // @ts-ignore
+          dataSourceSettingsWithWorkloadIdentityCredentials,
+          {
+            authType: 'workloadidentity',
+          }
+        );
+        expect(resultForWorkloadIdentityCredentials).toEqual({
+          jsonData: { azureCredentials: { authType: 'workloadidentity' } },
+        });
+
+        // If `config.azure.workloadIdentityEnabled !== true`.
+        jest.mocked(config).azure.workloadIdentityEnabled = false;
+        expect(() =>
+          updateDatasourceCredentials(
+            // @ts-ignore
+            dataSourceSettingsWithWorkloadIdentityCredentials,
+            {
+              authType: 'workloadidentity',
+            }
+          )
+        ).toThrow('Workload Identity authentication is not enabled in Grafana config.');
       });
 
       it('should update the credentials for client secret correctly', () => {
