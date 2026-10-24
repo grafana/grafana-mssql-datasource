@@ -16,6 +16,38 @@ func GetAzureCredentialDSNFragment(azureCredentials azcredentials.AzureCredentia
 		}
 		connStr += fmt.Sprintf("fedauth=%s;",
 			"ActiveDirectoryManagedIdentity")
+	case *azcredentials.AzureWorkloadIdentityCredentials:
+		if !azureSettings.WorkloadIdentityEnabled {
+			return "", fmt.Errorf("workload identity authentication is not enabled")
+		}
+		// Grafana does not pass the AZURE_* environment variables injected by the workload identity
+		// webhook to plugin processes, so client ID, tenant ID and token file must come from the
+		// [azure] workload_identity_* settings. Per-datasource client and tenant IDs take precedence.
+		clientId, tenantId, tokenFile := c.ClientId, c.TenantId, ""
+		if wi := azureSettings.WorkloadIdentitySettings; wi != nil {
+			if clientId == "" {
+				clientId = wi.ClientId
+			}
+			if tenantId == "" {
+				tenantId = wi.TenantId
+			}
+			tokenFile = wi.TokenFile
+		}
+		if clientId == "" {
+			return "", fmt.Errorf("workload identity client ID is not configured, set workload_identity_client_id in the [azure] section of the Grafana configuration")
+		}
+		if tenantId == "" {
+			return "", fmt.Errorf("workload identity tenant ID is not configured, set workload_identity_tenant_id in the [azure] section of the Grafana configuration")
+		}
+		if tokenFile == "" {
+			return "", fmt.Errorf("workload identity token file is not configured, set workload_identity_token_file in the [azure] section of the Grafana configuration")
+		}
+		connStr += fmt.Sprintf("user id=%s@%s;tokenfilepath=%s;fedauth=%s;",
+			clientId,
+			tenantId,
+			tokenFile,
+			"ActiveDirectoryWorkloadIdentity",
+		)
 	case *azcredentials.AzureClientSecretCredentials:
 		// "password" is passed as an argument rather than embedded in the
 		// format string to prevent "password=%s" from appearing in the
