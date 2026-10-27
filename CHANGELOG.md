@@ -1,5 +1,9 @@
 # Changelog
 
+## 13.0.9
+
+- Bump backend dependency
+
 ## 13.0.8
 
 - Update Go to 1.27.3
