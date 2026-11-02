@@ -4,6 +4,10 @@ export const dataSourceSettingsWithMsiCredentials: Partial<AzureDataSourceSettin
   jsonData: { azureCredentials: { authType: 'msi' } },
 };
 
+export const dataSourceSettingsWithWorkloadIdentityCredentials: Partial<AzureDataSourceSettings> = {
+  jsonData: { azureCredentials: { authType: 'workloadidentity' } },
+};
+
 // Will return symbol as the secret is concealed
 export const dataSourceSettingsWithClientSecretOnServer: Partial<AzureDataSourceSettings> = {
   jsonData: {
