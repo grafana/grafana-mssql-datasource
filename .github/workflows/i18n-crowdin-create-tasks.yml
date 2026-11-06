@@ -10,6 +10,7 @@ permissions: {}
 
 jobs:
   create-tasks-in-crowdin:
+    if: github.repository == 'grafana/grafana-mssql-datasource'
     runs-on: ubuntu-x64
     permissions:
       contents: read

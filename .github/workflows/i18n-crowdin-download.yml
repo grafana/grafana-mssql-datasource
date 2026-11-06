@@ -7,6 +7,7 @@ on:
 
 jobs:
   download-sources-from-crowdin:
+    if: github.repository == 'grafana/grafana-mssql-datasource'
     runs-on: ubuntu-x64
     permissions:
       contents: read
@@ -21,6 +22,11 @@ jobs:
         uses: grafana/shared-workflows/actions/create-github-app-token@46f48da11e78ebdba7a8747ae456b11062fac83e # create-github-app-token/v0.3.1
         with:
           github_app: grafana-pr-automation
+      - name: Get GitHub App token
+        id: get-github-approver-token
+        uses: grafana/shared-workflows/actions/create-github-app-token@46f48da11e78ebdba7a8747ae456b11062fac83e # create-github-app-token/v0.3.1
+        with:
+          github_app: grafana-pr-approver
       - name: "Get vault secrets"
         id: vault-secrets
         uses: grafana/shared-workflows/actions/get-vault-secrets@cdfa828a8c3148777e8b91d326ff2ed355be4631 # main
@@ -36,4 +42,6 @@ jobs:
           crowdin_project_id: 56
           pr_labels: "area/i18n, no-changelog"
           github_board_id: 1085 # Grafana Data Sources project
+          en_paths: src/locales/en-US/mssql.json
           github_repo_token: ${{ steps.get-github-app-token.outputs.token }}
+          github_pr_approver_token: ${{ steps.get-github-approver-token.outputs.token }}
