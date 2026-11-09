@@ -3,12 +3,12 @@ module github.com/grafana/grafana-mssql-datasource
 go 1.27.3
 
 require (
-	github.com/grafana/grafana-azure-sdk-go/v2 v2.5.1
-	github.com/grafana/grafana-plugin-sdk-go v0.297.0
+	github.com/grafana/grafana-azure-sdk-go/v2 v2.6.0
+	github.com/grafana/grafana-plugin-sdk-go v0.298.0
 	github.com/magefile/mage v1.17.2
 	github.com/microsoft/go-mssqldb v1.11.2
 	github.com/stretchr/testify v1.12.1
-	golang.org/x/net v0.61.0
+	golang.org/x/net v0.62.0
 )
 
 require (
