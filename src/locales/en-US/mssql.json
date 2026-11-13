@@ -13,8 +13,10 @@
       "auth-options-app-registration": "App Registration",
       "auth-options-azure-entra": "Azure Entra Password",
       "auth-options-managed-identity": "Managed Identity",
+      "auth-options-workload-identity": "Workload Identity",
       "client-secret-reset": "Reset",
       "description-authentication": "Choose the type of authentication to Azure services",
+      "description-workload-identity": "Workload Identity uses the managed identity configured in the <1>[azure]</1> section of the Grafana configuration: <3>workload_identity_client_id</3>, <5>workload_identity_tenant_id</5> and <8>workload_identity_token_file</8>.",
       "label-application-client-id": "Application Client ID",
       "label-authentication": "Authentication",
       "label-azure-cloud": "Azure Cloud",
@@ -32,7 +34,8 @@
       "required-client-id": "Client ID is required",
       "required-client-secret": "Client secret is required",
       "required-password": "Password is required",
-      "required-tenant-id": "Tenant ID is required"
+      "required-tenant-id": "Tenant ID is required",
+      "title-workload-identity": "Configured in Grafana"
     }
   },
   "cheat-sheet": {
@@ -56,7 +59,7 @@
     "configuration-editor": {
       "body-user-permission": "The database user should only be granted {{permissionType}} permissions on the specified database and tables you want to query. Grafana does not validate that queries are safe so queries can contain any SQL statement. For example, statements like <3>{{example1}}</3> and <5>{{example2}}</5> would be executed. To protect against this we <7>highly</7> recommend you create a specific MS SQL user with restricted permissions. Check out the <10>Microsoft SQL Server Data Source Docs</10> for more information.",
       "description-additional-settings": "Additional settings are optional settings that can be configured for more control over your data source. This includes connection limits, connection timeout, group-by time interval, and Secure Socks Proxy.",
-      "description-auth-type-azure-auth": "<i>Azure Authentication</i> Securely authenticate and access Azure resources and applications using Azure AD credentials - Managed Service Identity and Client Secret Credentials are supported.",
+      "description-auth-type-azure-auth": "<i>Azure Authentication</i> Securely authenticate and access Azure resources and applications using Azure AD credentials - Managed Service Identity, Workload Identity and Client Secret Credentials are supported.",
       "description-auth-type-credential-cache": "<i>Windows AD: Credential cache</i> Windows Active Directory - Sign on for domain user via credential cache.",
       "description-auth-type-credential-cache-file": "<i>Windows AD: Credential cache file</i> Windows Active Directory - Sign on for domain user via credential cache file.",
       "description-auth-type-keytab": "<i>Windows AD: Keytab</i> Windows Active Directory - Sign on for domain user via keytab file.",
