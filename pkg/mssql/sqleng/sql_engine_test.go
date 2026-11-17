@@ -706,6 +706,45 @@ func TestGenerateConnectionString(t *testing.T) {
 			},
 			expConnStr: "odbc:server=localhost;database=database;user id={myuser};password={StrongPass;123};",
 		},
+		{
+			desc: "Encrypt strict",
+			dataSource: DataSourceInfo{
+				URL:      "localhost",
+				Database: "database",
+				User:     "user",
+				JsonData: JsonData{
+					Encrypt: "strict",
+				},
+			},
+			expConnStr: "server=localhost;database=database;user id=user;password=;encrypt=strict;",
+		},
+		{
+			desc: "Encrypt strict ignores tlsSkipVerify",
+			dataSource: DataSourceInfo{
+				URL:      "localhost",
+				Database: "database",
+				User:     "user",
+				JsonData: JsonData{
+					Encrypt:       "strict",
+					TlsSkipVerify: true,
+				},
+			},
+			expConnStr: "server=localhost;database=database;user id=user;password=;encrypt=strict;",
+		},
+		{
+			desc: "Encrypt strict with hostname in certificate and root certificate",
+			dataSource: DataSourceInfo{
+				URL:      "localhost:1433",
+				Database: "database",
+				User:     "user",
+				JsonData: JsonData{
+					Encrypt:      "strict",
+					Servername:   "sql.example.com",
+					RootCertFile: "/etc/ssl/ca.pem",
+				},
+			},
+			expConnStr: "server=localhost;database=database;user id=user;password=;port=1433;encrypt=strict;hostNameInCertificate=sql.example.com;certificate=/etc/ssl/ca.pem;",
+		},
 	}
 
 	logger := backend.NewLoggerWith("logger", "mssql.test")

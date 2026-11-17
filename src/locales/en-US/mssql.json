@@ -68,6 +68,7 @@
       "description-encrypt-disable": "<i>{{encryptionValue}}</i> - Data sent between client and server is not encrypted.",
       "description-encrypt-false": "<i>{{encryptionValue}}</i> - Data sent between client and server is not encrypted beyond the login packet. (default)",
       "description-encrypt-older-version": "If you're using an older version of Microsoft SQL Server like 2008 and 2008R2 you may need to disable encryption to be able to connect.",
+      "description-encrypt-strict": "<i>{{encryptionValue}}</i> - Data sent between client and server is encrypted using TDS 8.0 strict encryption, and the server certificate is always validated. Requires SQL Server 2022 or later.",
       "description-encrypt-true": "<i>{{encryptionValue}}</i> - Data sent between client and server is encrypted.",
       "description-min-interval": "A lower limit for the auto group by time interval. Recommended to be set to write frequency, for example<1>{{exampleInterval}}</1> if your data is written every minute.",
       "description-tls-cert": "Path to file containing the public key certificate of the CA that signed the SQL Server certificate. Needed when the server certificate is self signed.",
