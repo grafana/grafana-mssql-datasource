@@ -1,0 +1,14 @@
+[
+  {
+    "user": "alice",
+    "database": "master",
+    "address": "sql.b.test:1433",
+    "credentialCache": "/runtime/alice-tgt.ccache"
+  },
+  {
+    "user": "bob",
+    "database": "master",
+    "address": "sql.b.test:1433",
+    "credentialCache": "/runtime/bob-tgt.ccache"
+  }
+]

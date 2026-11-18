@@ -8,6 +8,7 @@ networks:
 
 volumes:
   runtime:
+  gomod:
 
 x-dc: &dc
   build: ./dc
@@ -125,3 +126,21 @@ services:
         condition: service_healthy
     networks:
       - lab
+
+  test:
+    profiles: [test]
+    image: golang:1.27.3-bookworm
+    working_dir: /src
+    dns: [10.99.0.5]
+    volumes:
+      - ../../..:/src
+      - runtime:/runtime:ro
+      - ./krb5:/krb5:ro
+      - ./fixtures:/fixtures:ro
+      - gomod:/go/pkg/mod
+    depends_on:
+      sql-init:
+        condition: service_completed_successfully
+    networks:
+      lab:
+        ipv4_address: 10.99.0.40
