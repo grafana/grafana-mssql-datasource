@@ -54,6 +54,15 @@ The next start provisions new domains with new keys and writes new runtime files
 A keytab from an earlier lab has the wrong keys for a new lab.
 After you change a setup script, or when a start fails, reset the lab.
 
+## MIT multi-hop realms
+
+The `mitkdc` service runs three MIT realms in one KDC: `ALPHA.TEST`, `HUB.TEST` and `GAMMA.TEST`.
+The realm path from `ALPHA.TEST` to `GAMMA.TEST` has two cross-realm hops through `HUB.TEST`.
+Samba and AD forest trusts have one hop only, so only this path shows an authenticator realm error in the driver.
+`TestKerberosTwoHopServiceTicket` signs in as `bob@ALPHA.TEST` with `krb5/multihop.conf`.
+It asks the driver for the ticket for `MSSQLSvc/svc.gamma.test:1433@GAMMA.TEST`.
+The KDC creates its databases and principals when the image builds, so no health check is needed.
+
 ## Add a principal
 
 The setup scripts run only when a domain controller provisions its domain.
