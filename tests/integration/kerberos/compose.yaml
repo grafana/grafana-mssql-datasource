@@ -153,3 +153,48 @@ services:
     networks:
       lab:
         ipv4_address: 10.99.0.40
+
+  grafana:
+    profiles: [dev]
+    image: grafana/grafana-enterprise:${GRAFANA_VERSION:-12.4.0}
+    dns: [10.99.0.5]
+    ports:
+      - "3001:3000"
+    environment:
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: mssql
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      KRB5_CONFIG: /krb5/crossrealm.conf
+      KRB5CCNAME: /runtime/bob-tgt.ccache
+    volumes:
+      - ../../../dist:/var/lib/grafana/plugins/mssql:ro
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - runtime:/runtime:ro
+      - ./krb5:/krb5:ro
+      - ./fixtures:/fixtures:ro
+    depends_on:
+      sql-init:
+        condition: service_completed_successfully
+      mitkdc:
+        condition: service_started
+    networks:
+      lab:
+        ipv4_address: 10.99.0.60
+
+  tools:
+    profiles: [dev]
+    build: ./dc
+    entrypoint: ["sleep", "infinity"]
+    init: true
+    dns: [10.99.0.5]
+    volumes:
+      - runtime:/runtime:ro
+      - ./krb5:/krb5:ro
+      - ./fixtures:/fixtures:ro
+    depends_on:
+      sql-init:
+        condition: service_completed_successfully
+    networks:
+      lab:
+        ipv4_address: 10.99.0.70

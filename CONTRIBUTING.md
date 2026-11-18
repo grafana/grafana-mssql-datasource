@@ -62,6 +62,32 @@ This project adheres to the [Grafana Code of Conduct](https://github.com/grafana
 npm run server
 ```
 
+## Kerberos integration tests
+
+The Kerberos tests run against a container lab with two Active Directory forests, SQL Server, and an MIT KDC:
+
+```shell
+docker compose -f tests/integration/kerberos/compose.yaml --profile test run --build --rm test go test -tags integration ./tests/integration/...
+```
+
+To browse the lab in Grafana, build the plugin (`npm run build` and `mage -v`) and run:
+
+```shell
+npm run server:kerberos
+```
+
+Grafana is on `http://localhost:3001`. See [the lab README](tests/integration/kerberos/README.md) for realms, principals, and passwords.
+
+Keep these points in mind when you change the lab:
+
+- SQL Server needs reverse DNS that returns the domain controller FQDN, so keep the CoreDNS PTR records and do not use Docker's DNS.
+- SQL Server logins use NetBIOS names (`B\alice`, `A\bob`), not realm names.
+- The `[realms]` and `[domain_realm]` entries in `krb5/*.conf` must match the exact `host:port` of the SPN.
+- Credential caches must hold a TGT only. A cached service ticket skips the cross-realm exchange that the tests need to cover.
+- Never run `sqlservr` or `mssql-conf` as root in the `sql` container.
+- Grafana loads the external plugin only when `[plugin.mssql] as_external = true` is in an ini file. The environment variable does not work.
+- `[plugins] forward_host_env_vars = mssql` passes `KRB5_CONFIG` and `KRB5CCNAME` to the plugin process.
+
 ## E2E tests
 
 ```shell
