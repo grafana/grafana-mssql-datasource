@@ -25,7 +25,10 @@ jobs:
           persist-credentials: false
 
       - name: Vet integration tests
-        run: docker compose -f tests/integration/kerberos/compose.yaml --profile test run --rm test go vet -tags integration ./tests/integration/...
+        # The test service resolves every name, module downloads included, through the lab CoreDNS.
+        run: |
+          docker compose -f tests/integration/kerberos/compose.yaml up -d dns
+          docker compose -f tests/integration/kerberos/compose.yaml --profile test run --rm --no-deps test go vet -tags integration ./tests/integration/...
 
       - name: Run integration tests
         run: docker compose -f tests/integration/kerberos/compose.yaml --profile test run --rm test go test -tags integration -count=1 -v ./tests/integration/...

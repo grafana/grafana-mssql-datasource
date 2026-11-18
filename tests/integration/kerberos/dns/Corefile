@@ -10,6 +10,12 @@ a.test {
   forward . 10.99.0.20
 }
 
+test {
+  hosts {
+    10.99.0.50 svc.gamma.test
+  }
+}
+
 . {
   # The hosts plugin drops entries outside its server block, so the PTRs live here.
   hosts {

@@ -76,13 +76,15 @@ To browse the lab in Grafana, build the plugin (`npm run build` and `mage -v`) a
 npm run server:kerberos
 ```
 
-Grafana is on `http://localhost:3001`. See [the lab README](tests/integration/kerberos/README.md) for realms, principals, and passwords.
+Grafana is on `http://localhost:3001`. See [the lab README](tests/integration/kerberos/README.md) for realms, principals, and passwords, and how to stop and reset it.
 
 Keep these points in mind when you change the lab:
 
 - SQL Server needs reverse DNS that returns the domain controller FQDN, so keep the CoreDNS PTR records and do not use Docker's DNS.
-- SQL Server logins use NetBIOS names (`B\alice`, `A\bob`), not realm names.
-- The `[realms]` and `[domain_realm]` entries in `krb5/*.conf` must match the exact `host:port` of the SPN.
+- SQL Server on Linux needs the NetBIOS name of each domain (`B`, `A`) to resolve to its domain controller, with the FQDN first. Keep these entries in `sql/hosts`, which is bind-mounted on `/etc/hosts`, because Docker reorders `extra_hosts`.
+- SQL Server looks up Windows logins with the privileged AD account `sqlsvc` (`network.privilegedadaccount` in `sql/mssql.conf`). Its password must never expire.
+- The SQL Server keytab must be owned by `mssql:mssql` with mode 440 and hold both SPN forms, `MSSQLSvc/host:port` and `MSSQLSvc/host`. Set the AES encryption types on `sqlsvc` before you export the keytab, or the SPN keys are RC4 only.
+- A client that asks for a service in another realm needs an exact `host:port` entry in `[domain_realm]`, for example `sql.b.test:1433 = B.TEST` in `krb5/crossrealm.conf`. The lab's Samba and MIT KDCs send no referrals. The go-krb5 library looks up the service realm with the port attached, so the `.b.test` suffix rule does not match. Windows AD sends referrals, so it needs no mapping.
 - Credential caches must hold a TGT only. A cached service ticket skips the cross-realm exchange that the tests need to cover.
 - Never run `sqlservr` or `mssql-conf` as root in the `sql` container.
 - Grafana loads the external plugin only when `[plugin.mssql] as_external = true` is in an ini file. The environment variable does not work.

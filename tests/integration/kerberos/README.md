@@ -8,17 +8,18 @@ Each domain controller creates its users, service principal names (SPNs), and ke
 
 All values are synthetic and exist only inside the lab.
 
-| Item                                                                                         | Value                                                                                                                                                |
-| -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Network                                                                                      | `10.99.0.0/24`: dns `.5`, dc-b `.10`, dc-a `.20`, sql `.30`, test `.40`, mitkdc `.50`, grafana `.60`, tools `.70`                                    |
-| SQL Server realm                                                                             | `B.TEST`, NetBIOS `B`, DC `dc1.b.test`, SQL Server `sql.b.test:1433`                                                                                 |
-| User realm                                                                                   | `A.TEST`, NetBIOS `A`, DC `dc1.a.test`, two-way forest trust with `B.TEST`                                                                           |
-| Administrator (both DCs)                                                                     | `Lab-Admin-1`                                                                                                                                        |
-| `sqlsvc@B.TEST` (privileged account, SPNs `MSSQLSvc/sql.b.test:1433`, `MSSQLSvc/sql.b.test`) | `Lab-Svc-Pass-1`, `msDS-SupportedEncryptionTypes: 24`, no expiry                                                                                     |
-| `alice@B.TEST`, `bob@A.TEST`                                                                 | `Lab-Alice-1`, `Lab-Bob-Pass-1`, no expiry                                                                                                           |
-| SQL Server `sa`                                                                              | `Lab-Sa-Pass-1`                                                                                                                                      |
-| MIT realms                                                                                   | `ALPHA.TEST` to `HUB.TEST` to `GAMMA.TEST`, `bob@ALPHA.TEST` `Lab-Bob-Mit-1`, SPN `MSSQLSvc/svc.gamma.test:1433@GAMMA.TEST`                          |
-| Runtime files                                                                                | named volume `runtime` at `/runtime`: `mssql.keytab`, `alice.keytab`, `bob.keytab`, `alice-tgt.ccache`, `bob-tgt.ccache`, `dc-a.ready`, `dc-b.ready` |
+| Item                                                                                         | Value                                                                                                                                                    |
+| -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Network                                                                                      | `10.99.0.0/24`: dns `.5`, dc-b `.10`, dc-a `.20`, sql `.30`, test `.40`, mitkdc `.50`, grafana `.60`, tools `.70`                                        |
+| SQL Server realm                                                                             | `B.TEST`, NetBIOS `B`, DC `dc1.b.test`, SQL Server `sql.b.test:1433`                                                                                     |
+| User realm                                                                                   | `A.TEST`, NetBIOS `A`, DC `dc1.a.test`, two-way forest trust with `B.TEST`                                                                               |
+| Administrator (both DCs)                                                                     | `Lab-Admin-1`                                                                                                                                            |
+| `sqlsvc@B.TEST` (privileged account, SPNs `MSSQLSvc/sql.b.test:1433`, `MSSQLSvc/sql.b.test`) | `Lab-Svc-Pass-1`, `msDS-SupportedEncryptionTypes: 24`, no expiry                                                                                         |
+| `alice@B.TEST`, `bob@A.TEST`                                                                 | `Lab-Alice-1`, `Lab-Bob-Pass-1`, no expiry                                                                                                               |
+| SQL Server `sa`                                                                              | `Lab-Sa-Pass-1`                                                                                                                                          |
+| MIT realms                                                                                   | `ALPHA.TEST` to `HUB.TEST` to `GAMMA.TEST`, `bob@ALPHA.TEST` `Lab-Bob-Mit-1`, SPN `MSSQLSvc/svc.gamma.test:1433@GAMMA.TEST`                              |
+| MIT KDC passwords                                                                            | master key `Lab-Master-1` (all three realms), cross-realm trust `Lab-Trust-1` (`ALPHA.TEST` and `HUB.TEST`), `Lab-Trust-2` (`HUB.TEST` and `GAMMA.TEST`) |
+| Runtime files                                                                                | named volume `runtime` at `/runtime`: `mssql.keytab`, `alice.keytab`, `bob.keytab`, `alice-tgt.ccache`, `bob-tgt.ccache`, `dc-a.ready`, `dc-b.ready`     |
 
 ## Start, stop, and reset the lab
 
@@ -92,7 +93,8 @@ Use `KRB5_CONFIG=/krb5/single.conf` and `alice@B.TEST` for the single-realm path
 
 The `mitkdc` service runs three MIT realms in one KDC: `ALPHA.TEST`, `HUB.TEST` and `GAMMA.TEST`.
 The realm path from `ALPHA.TEST` to `GAMMA.TEST` has two cross-realm hops through `HUB.TEST`.
-Samba and AD forest trusts have one hop only, so only this path shows an authenticator realm error in the driver.
+The lab's forest trust is one hop.
+Only a path of two or more hops shows the bug that go-mssqldb v1.12.0 fixes (`KRB_AP_ERR_BADMATCH` on v1.11.2).
 `TestKerberosTwoHopServiceTicket` signs in as `bob@ALPHA.TEST` with `krb5/multihop.conf`.
 It asks the driver for the ticket for `MSSQLSvc/svc.gamma.test:1433@GAMMA.TEST`.
 The KDC creates its databases and principals when the image builds, so no health check is needed.

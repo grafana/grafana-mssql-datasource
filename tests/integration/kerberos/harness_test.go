@@ -107,5 +107,9 @@ func queryLogin(t *testing.T, ds kerberosDS) (login, scheme string) {
 	require.True(t, ok)
 	s, ok := r.Frames[0].Fields[1].ConcreteAt(0)
 	require.True(t, ok)
-	return l.(string), s.(string)
+	login, ok = l.(string)
+	require.True(t, ok, "login is %T, want string", l)
+	scheme, ok = s.(string)
+	require.True(t, ok, "auth_scheme is %T, want string", s)
+	return login, scheme
 }

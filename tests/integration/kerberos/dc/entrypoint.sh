@@ -20,8 +20,15 @@ samba --interactive --no-process-group --debug-stdout &
 samba_pid=$!
 
 ccache="/runtime/$TGT_USER-tgt.ccache"
-until kinit -k -t "/runtime/$TGT_USER.keytab" -c "FILE:$ccache" "$TGT_USER@$REALM" 2>/dev/null; do
+get_tgt() { kinit -k -t "/runtime/$TGT_USER.keytab" -c "FILE:$ccache" "$TGT_USER@$REALM"; }
+tries=120
+until get_tgt 2>/dev/null; do
   kill -0 "$samba_pid"
+  tries=$((tries - 1))
+  if [ "$tries" -le 1 ]; then
+    get_tgt || exit 1
+    break
+  fi
   sleep 1
 done
 chmod 444 "$ccache"

@@ -22,7 +22,7 @@ x-dc: &dc
 services:
   dns:
     image: coredns/coredns:1.12.4
-    command: ["-conf", "/etc/coredns/Corefile"]
+    command: ['-conf', '/etc/coredns/Corefile']
     volumes:
       - ./dns/Corefile:/etc/coredns/Corefile:ro
     networks:
@@ -42,7 +42,7 @@ services:
       dns:
         condition: service_started
     healthcheck:
-      test: ["CMD", "test", "-f", "/runtime/dc-a.ready"]
+      test: ['CMD', 'test', '-f', '/runtime/dc-a.ready']
       interval: 5s
       retries: 120
     networks:
@@ -64,7 +64,7 @@ services:
       dc-a:
         condition: service_started
     healthcheck:
-      test: ["CMD", "test", "-f", "/runtime/dc-b.ready"]
+      test: ['CMD', 'test', '-f', '/runtime/dc-b.ready']
       interval: 5s
       retries: 120
     networks:
@@ -76,9 +76,9 @@ services:
     platform: linux/amd64
     hostname: sql
     domainname: b.test
-    entrypoint: ["/lab/entrypoint.sh"]
+    entrypoint: ['/lab/entrypoint.sh']
     environment:
-      ACCEPT_EULA: "Y"
+      ACCEPT_EULA: 'Y'
       MSSQL_PID: Developer
       MSSQL_SA_PASSWORD: Lab-Sa-Pass-1
       SQLCMDPASSWORD: Lab-Sa-Pass-1
@@ -95,7 +95,7 @@ services:
       dc-b:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-C", "-b", "-Q", "SELECT 1"]
+      test: ['CMD', '/opt/mssql-tools18/bin/sqlcmd', '-S', 'localhost', '-U', 'sa', '-C', '-b', '-Q', 'SELECT 1']
       interval: 5s
       timeout: 10s
       retries: 24
@@ -159,15 +159,20 @@ services:
     image: grafana/grafana-enterprise:${GRAFANA_VERSION:-12.4.0}
     dns: [10.99.0.5]
     ports:
-      - "3001:3000"
+      - '127.0.0.1:3001:3000'
     environment:
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: mssql
-      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: 'true'
       GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
       KRB5_CONFIG: /krb5/crossrealm.conf
       KRB5CCNAME: /runtime/bob-tgt.ccache
     volumes:
-      - ../../../dist:/var/lib/grafana/plugins/mssql:ro
+      - type: bind
+        source: ../../../dist
+        target: /var/lib/grafana/plugins/mssql
+        read_only: true
+        bind:
+          create_host_path: false
       - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - runtime:/runtime:ro
@@ -185,7 +190,7 @@ services:
   tools:
     profiles: [dev]
     build: ./dc
-    entrypoint: ["sleep", "infinity"]
+    entrypoint: ['sleep', 'infinity']
     init: true
     dns: [10.99.0.5]
     volumes:
