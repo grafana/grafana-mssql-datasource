@@ -1,7 +1,7 @@
 # Kerberos integration lab
 
 This lab is a container environment for the Kerberos authentication modes of the MSSQL data source.
-It runs two Samba Active Directory forests with a two-way forest trust, and CoreDNS for the lab DNS names.
+It runs two Samba Active Directory forests with a two-way forest trust, SQL Server 2022 in `B.TEST`, and CoreDNS for the lab DNS names.
 Each domain controller creates its users, service principal names (SPNs), and keytabs when it provisions its domain.
 
 ## Lab values
@@ -27,11 +27,14 @@ Run these commands from the repository root.
 To start the lab:
 
 ```shell
-docker compose -f tests/integration/kerberos/compose.yaml up -d --build --wait
+docker compose -f tests/integration/kerberos/compose.yaml run --build --rm sql-init
 ```
 
-The command returns when both domain controllers are healthy.
+The command returns when SQL Server has the Windows logins `B\alice` and `A\bob`.
+SQL Server starts only after both domain controllers are healthy.
 `dc-b` is healthy only after the forest trust exists.
+Do not use `up --wait` to start the whole lab, because it fails when `sql-init` exits.
+On an Apple Silicon Mac, SQL Server runs under Rosetta, and a cold start takes about 25 seconds when the images are already pulled.
 
 To stop the lab and keep its domains:
 

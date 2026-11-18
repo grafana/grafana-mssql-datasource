@@ -69,3 +69,59 @@ services:
     networks:
       lab:
         ipv4_address: 10.99.0.10
+
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    hostname: sql
+    domainname: b.test
+    entrypoint: ["/lab/entrypoint.sh"]
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: Lab-Sa-Pass-1
+      SQLCMDPASSWORD: Lab-Sa-Pass-1
+    volumes:
+      - runtime:/runtime:ro
+      - ./sql/entrypoint.sh:/lab/entrypoint.sh:ro
+      - ./sql/hosts:/etc/hosts:ro
+      - ./sql/resolv.conf:/etc/resolv.conf:ro
+      - ./sql/mssql.conf:/var/opt/mssql/mssql.conf:ro
+      - ./krb5/single.conf:/etc/krb5.conf:ro
+    depends_on:
+      dc-a:
+        condition: service_healthy
+      dc-b:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-C", "-b", "-Q", "SELECT 1"]
+      interval: 5s
+      timeout: 10s
+      retries: 24
+      start_period: 120s
+    networks:
+      lab:
+        ipv4_address: 10.99.0.30
+
+  sql-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    entrypoint:
+      - bash
+      - -c
+      - |
+        for _ in {1..20}; do
+          /opt/mssql-tools18/bin/sqlcmd -S sql.b.test -U sa -C -b -i /init/init.sql && exit 0
+          sleep 3
+        done
+        exit 1
+    environment:
+      SQLCMDPASSWORD: Lab-Sa-Pass-1
+    volumes:
+      - ./sql/init.sql:/init/init.sql:ro
+      - ./dns/resolv.conf:/etc/resolv.conf:ro
+    depends_on:
+      sql:
+        condition: service_healthy
+    networks:
+      - lab
