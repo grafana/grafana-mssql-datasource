@@ -1,0 +1,22 @@
+b.test {
+  hosts {
+    10.99.0.30 sql.b.test
+    fallthrough
+  }
+  forward . 10.99.0.10
+}
+
+a.test {
+  forward . 10.99.0.20
+}
+
+. {
+  # The hosts plugin drops entries outside its server block, so the PTRs live here.
+  hosts {
+    10.99.0.10 dc1.b.test
+    10.99.0.20 dc1.a.test
+    10.99.0.30 sql.b.test
+    fallthrough
+  }
+  forward . 127.0.0.11
+}

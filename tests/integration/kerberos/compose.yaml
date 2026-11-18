@@ -1,0 +1,71 @@
+name: mssql-kerberos-lab
+
+networks:
+  lab:
+    ipam:
+      config:
+        - subnet: 10.99.0.0/24
+
+volumes:
+  runtime:
+
+x-dc: &dc
+  build: ./dc
+  init: true
+  privileged: true
+  volumes:
+    - runtime:/runtime
+    - ./dns/resolv.conf:/etc/resolv.conf:ro
+    - ./krb5/single.conf:/etc/krb5.conf:ro
+
+services:
+  dns:
+    image: coredns/coredns:1.12.4
+    command: ["-conf", "/etc/coredns/Corefile"]
+    volumes:
+      - ./dns/Corefile:/etc/coredns/Corefile:ro
+    networks:
+      lab:
+        ipv4_address: 10.99.0.5
+
+  dc-a:
+    <<: *dc
+    hostname: dc1
+    domainname: a.test
+    environment:
+      REALM: A.TEST
+      DOMAIN: A
+      ADMIN_PASSWORD: Lab-Admin-1
+      TGT_USER: bob
+    depends_on:
+      dns:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "test", "-f", "/runtime/dc-a.ready"]
+      interval: 5s
+      retries: 120
+    networks:
+      lab:
+        ipv4_address: 10.99.0.20
+
+  dc-b:
+    <<: *dc
+    hostname: dc1
+    domainname: b.test
+    environment:
+      REALM: B.TEST
+      DOMAIN: B
+      ADMIN_PASSWORD: Lab-Admin-1
+      TGT_USER: alice
+    depends_on:
+      dns:
+        condition: service_started
+      dc-a:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "test", "-f", "/runtime/dc-b.ready"]
+      interval: 5s
+      retries: 120
+    networks:
+      lab:
+        ipv4_address: 10.99.0.10
