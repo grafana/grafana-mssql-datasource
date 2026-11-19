@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Report health check failures caused by the data source (unreachable host, refused connection, bad credentials or connection settings) as downstream errors instead of plugin errors, so they no longer trigger plugin error-rate alerts ([#124](https://github.com/grafana/grafana-mssql-datasource/pull/124))
+- Fix a crash when running a health check without a user
+- Update `grafana-plugin-sdk-go` to v0.301.0
+
 ## 13.0.10
 
 - Fix a connection freeze between Grafana and the plugin under heavy query load by updating google.golang.org/grpc to v1.85.0 ([grpc/grpc-go#9330](https://github.com/grpc/grpc-go/issues/9330))
