@@ -25,15 +25,8 @@ func (e *DataSourceHandler) CheckHealth(ctx context.Context, req *backend.CheckH
 	return &backend.CheckHealthResult{Status: backend.HealthStatusOk, Message: "Database Connection OK"}, nil
 }
 
-// failedCheckResult logs a failed health check, marks it as a downstream error and builds the
-// result for the caller's role.
-//
-// Every failure here comes from connecting to, authenticating with or configuring the
-// datasource (unreachable host, bad credentials, bad connection settings), so it is downstream.
-// The exception is a connection that was never initialized, which is a plugin bug.
 func (e *DataSourceHandler) failedCheckResult(ctx context.Context, req *backend.CheckHealthRequest, err error) *backend.CheckHealthResult {
 	if !errors.Is(err, errDBNotInitialized) {
-		// The SDK handler middleware initializes the error-source context.
 		_ = backend.WithDownstreamErrorSource(ctx)
 	}
 	logCheckHealthError(ctx, e.dsInfo, err)

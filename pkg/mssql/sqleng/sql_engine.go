@@ -219,8 +219,6 @@ func (e *DataSourceHandler) Dispose() {
 	e.log.Debug("DB disposed")
 }
 
-// errDBNotInitialized is returned when the handler has no database connection. It is a plugin
-// error, not a datasource one.
 var errDBNotInitialized = errors.New("database connection is not initialized")
 
 func (e *DataSourceHandler) getDB(ctx context.Context) (*sql.DB, error) {

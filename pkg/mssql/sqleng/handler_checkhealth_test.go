@@ -64,7 +64,6 @@ func TestErrToHealthCheckResult(t *testing.T) {
 	}
 }
 
-// failingConnector fails every connection attempt with err.
 type failingConnector struct{ err error }
 
 func (c failingConnector) Connect(context.Context) (driver.Conn, error) { return nil, c.err }
@@ -77,10 +76,9 @@ func TestCheckHealthErrorSource(t *testing.T) {
 	connErr := errors.New("socks connect tcp 10.0.0.1:1433->db:1433: unknown error host unreachable")
 
 	tests := []struct {
-		name string
-		db   *sql.DB
-		req  *backend.CheckHealthRequest
-		// azureCurrentUser configures Azure current user authentication, which needs a user in the context to connect.
+		name             string
+		db               *sql.DB
+		req              *backend.CheckHealthRequest
 		azureCurrentUser bool
 		want             status.Source
 	}{
