@@ -8,6 +8,7 @@ import (
 	"net"
 	"testing"
 
+	"github.com/grafana/grafana-azure-sdk-go/v2/azcredentials"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/experimental/status"
 	mssql "github.com/microsoft/go-mssqldb"
@@ -63,7 +64,7 @@ func TestErrToHealthCheckResult(t *testing.T) {
 	}
 }
 
-// failingConnector fails every connection attempt with err, or connects with a no-op conn when err is nil.
+// failingConnector fails every connection attempt with err.
 type failingConnector struct{ err error }
 
 func (c failingConnector) Connect(context.Context) (driver.Conn, error) { return nil, c.err }
@@ -79,17 +80,24 @@ func TestCheckHealthErrorSource(t *testing.T) {
 		name string
 		db   *sql.DB
 		req  *backend.CheckHealthRequest
-		want status.Source
+		// azureCurrentUser configures Azure current user authentication, which needs a user in the context to connect.
+		azureCurrentUser bool
+		want             status.Source
 	}{
 		{name: "ping failure, admin", db: sql.OpenDB(failingConnector{connErr}), req: adminReq, want: status.SourceDownstream},
 		{name: "ping failure, non-admin", db: sql.OpenDB(failingConnector{connErr}), req: viewerReq, want: status.SourceDownstream},
 		{name: "ping failure, no user", db: sql.OpenDB(failingConnector{connErr}), req: noUserReq, want: status.SourceDownstream},
 		{name: "login failure", db: sql.OpenDB(failingConnector{&mssql.Error{Number: 18456, Message: "Login failed for user"}}), req: viewerReq, want: status.SourceDownstream},
+		{name: "missing Azure current user is a configuration error", req: adminReq, azureCurrentUser: true, want: status.SourceDownstream},
 		{name: "connection not initialized is a plugin error", db: nil, req: adminReq, want: status.SourcePlugin},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e := &DataSourceHandler{db: tt.db, log: backend.NewLoggerWith("logger", "mssql.test"), queryResultTransformer: &testQueryResultTransformer{}}
+			if tt.azureCurrentUser {
+				e.dsInfo.JsonData.AuthenticationType = azureAuthentication
+				e.azureCredentials = &azcredentials.AadCurrentUserCredentials{}
+			}
 			ctx := status.InitSource(context.Background())
 
 			res, err := e.CheckHealth(ctx, tt.req)
