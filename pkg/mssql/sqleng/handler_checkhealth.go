@@ -17,20 +17,30 @@ func (e *DataSourceHandler) CheckHealth(ctx context.Context, req *backend.CheckH
 	ctx = azusercontext.WithUserFromHealthCheckReq(ctx, req)
 	db, err := e.getDB(ctx)
 	if err != nil {
-		logCheckHealthError(ctx, e.dsInfo, err)
-		if strings.EqualFold(req.PluginContext.User.Role, "Admin") {
-			return ErrToHealthCheckResult(err)
+		// Failing to build the connection (bad connection settings, Azure credentials, missing user)
+		// is a configuration problem. A connection that was never initialized is a plugin bug.
+		if !errors.Is(err, errDBNotInitialized) {
+			// The SDK handler middleware initializes the error-source context.
+			_ = backend.WithDownstreamErrorSource(ctx)
 		}
-		return &backend.CheckHealthResult{Status: backend.HealthStatusError, Message: e.TransformQueryError(e.log, err).Error()}, nil
+		return e.checkHealthErrorResult(ctx, req, err), nil
 	}
 	if err := db.Ping(); err != nil {
-		logCheckHealthError(ctx, e.dsInfo, err)
-		if strings.EqualFold(req.PluginContext.User.Role, "Admin") {
-			return ErrToHealthCheckResult(err)
-		}
-		return &backend.CheckHealthResult{Status: backend.HealthStatusError, Message: e.TransformQueryError(e.log, err).Error()}, nil
+		// Ping only connects and authenticates, so a failure here is the datasource's:
+		// unreachable host, refused connection, bad credentials or a misconfiguration.
+		_ = backend.WithDownstreamErrorSource(ctx)
+		return e.checkHealthErrorResult(ctx, req, err), nil
 	}
 	return &backend.CheckHealthResult{Status: backend.HealthStatusOk, Message: "Database Connection OK"}, nil
+}
+
+func (e *DataSourceHandler) checkHealthErrorResult(ctx context.Context, req *backend.CheckHealthRequest, err error) *backend.CheckHealthResult {
+	logCheckHealthError(ctx, e.dsInfo, err)
+	if req.PluginContext.User != nil && strings.EqualFold(req.PluginContext.User.Role, "Admin") {
+		res, _ := ErrToHealthCheckResult(err)
+		return res
+	}
+	return &backend.CheckHealthResult{Status: backend.HealthStatusError, Message: e.TransformQueryError(e.log, err).Error()}
 }
 
 // ErrToHealthCheckResult converts error into user friendly health check message

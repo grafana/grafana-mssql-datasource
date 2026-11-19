@@ -1,11 +1,15 @@
 package sqleng
 
 import (
+	"context"
+	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"net"
 	"testing"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana-plugin-sdk-go/experimental/status"
 	mssql "github.com/microsoft/go-mssqldb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -55,6 +59,43 @@ func TestErrToHealthCheckResult(t *testing.T) {
 			require.Nil(t, err)
 			assert.Equal(t, string(tt.want.JSONDetails), string(got.JSONDetails))
 			require.Equal(t, tt.want, got)
+		})
+	}
+}
+
+// failingConnector fails every connection attempt with err, or connects with a no-op conn when err is nil.
+type failingConnector struct{ err error }
+
+func (c failingConnector) Connect(context.Context) (driver.Conn, error) { return nil, c.err }
+func (c failingConnector) Driver() driver.Driver                        { return nil }
+
+func TestCheckHealthErrorSource(t *testing.T) {
+	adminReq := &backend.CheckHealthRequest{PluginContext: backend.PluginContext{User: &backend.User{Role: "Admin"}}}
+	viewerReq := &backend.CheckHealthRequest{PluginContext: backend.PluginContext{User: &backend.User{Role: "Viewer"}}}
+	noUserReq := &backend.CheckHealthRequest{}
+	connErr := errors.New("socks connect tcp 10.0.0.1:1433->db:1433: unknown error host unreachable")
+
+	tests := []struct {
+		name string
+		db   *sql.DB
+		req  *backend.CheckHealthRequest
+		want status.Source
+	}{
+		{name: "ping failure, admin", db: sql.OpenDB(failingConnector{connErr}), req: adminReq, want: status.SourceDownstream},
+		{name: "ping failure, non-admin", db: sql.OpenDB(failingConnector{connErr}), req: viewerReq, want: status.SourceDownstream},
+		{name: "ping failure, no user", db: sql.OpenDB(failingConnector{connErr}), req: noUserReq, want: status.SourceDownstream},
+		{name: "login failure", db: sql.OpenDB(failingConnector{&mssql.Error{Number: 18456, Message: "Login failed for user"}}), req: viewerReq, want: status.SourceDownstream},
+		{name: "connection not initialized is a plugin error", db: nil, req: adminReq, want: status.SourcePlugin},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := &DataSourceHandler{db: tt.db, log: backend.NewLoggerWith("logger", "mssql.test"), queryResultTransformer: &testQueryResultTransformer{}}
+			ctx := status.InitSource(context.Background())
+
+			res, err := e.CheckHealth(ctx, tt.req)
+			require.NoError(t, err)
+			require.Equal(t, backend.HealthStatusError, res.Status)
+			require.Equal(t, tt.want, status.SourceFromContext(ctx))
 		})
 	}
 }
