@@ -1,0 +1,205 @@
+name: mssql-kerberos-lab
+
+networks:
+  lab:
+    ipam:
+      config:
+        - subnet: 10.99.0.0/24
+
+volumes:
+  runtime:
+  gomod:
+
+x-dc: &dc
+  build: ./dc
+  init: true
+  privileged: true
+  volumes:
+    - runtime:/runtime
+    - ./dns/resolv.conf:/etc/resolv.conf:ro
+    - ./krb5/single.conf:/etc/krb5.conf:ro
+
+services:
+  dns:
+    image: coredns/coredns:1.12.4
+    command: ['-conf', '/etc/coredns/Corefile']
+    volumes:
+      - ./dns/Corefile:/etc/coredns/Corefile:ro
+    networks:
+      lab:
+        ipv4_address: 10.99.0.5
+
+  dc-a:
+    <<: *dc
+    hostname: dc1
+    domainname: a.test
+    environment:
+      REALM: A.TEST
+      DOMAIN: A
+      ADMIN_PASSWORD: Lab-Admin-1
+      TGT_USER: bob
+    depends_on:
+      dns:
+        condition: service_started
+    healthcheck:
+      test: ['CMD', 'test', '-f', '/runtime/dc-a.ready']
+      interval: 5s
+      retries: 120
+    networks:
+      lab:
+        ipv4_address: 10.99.0.20
+
+  dc-b:
+    <<: *dc
+    hostname: dc1
+    domainname: b.test
+    environment:
+      REALM: B.TEST
+      DOMAIN: B
+      ADMIN_PASSWORD: Lab-Admin-1
+      TGT_USER: alice
+    depends_on:
+      dns:
+        condition: service_started
+      dc-a:
+        condition: service_started
+    healthcheck:
+      test: ['CMD', 'test', '-f', '/runtime/dc-b.ready']
+      interval: 5s
+      retries: 120
+    networks:
+      lab:
+        ipv4_address: 10.99.0.10
+
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    hostname: sql
+    domainname: b.test
+    entrypoint: ['/lab/entrypoint.sh']
+    environment:
+      ACCEPT_EULA: 'Y'
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: Lab-Sa-Pass-1
+      SQLCMDPASSWORD: Lab-Sa-Pass-1
+    volumes:
+      - runtime:/runtime:ro
+      - ./sql/entrypoint.sh:/lab/entrypoint.sh:ro
+      - ./sql/hosts:/etc/hosts:ro
+      - ./sql/resolv.conf:/etc/resolv.conf:ro
+      - ./sql/mssql.conf:/var/opt/mssql/mssql.conf:ro
+      - ./krb5/single.conf:/etc/krb5.conf:ro
+    depends_on:
+      dc-a:
+        condition: service_healthy
+      dc-b:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', '/opt/mssql-tools18/bin/sqlcmd', '-S', 'localhost', '-U', 'sa', '-C', '-b', '-Q', 'SELECT 1']
+      interval: 5s
+      timeout: 10s
+      retries: 24
+      start_period: 120s
+    networks:
+      lab:
+        ipv4_address: 10.99.0.30
+
+  sql-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    entrypoint:
+      - bash
+      - -c
+      - |
+        for _ in {1..20}; do
+          /opt/mssql-tools18/bin/sqlcmd -S sql.b.test -U sa -C -b -i /init/init.sql && exit 0
+          sleep 3
+        done
+        exit 1
+    environment:
+      SQLCMDPASSWORD: Lab-Sa-Pass-1
+    volumes:
+      - ./sql/init.sql:/init/init.sql:ro
+      - ./dns/resolv.conf:/etc/resolv.conf:ro
+    depends_on:
+      sql:
+        condition: service_healthy
+    networks:
+      - lab
+
+  mitkdc:
+    build: ./mitkdc
+    init: true
+    networks:
+      lab:
+        ipv4_address: 10.99.0.50
+
+  test:
+    profiles: [test]
+    image: golang:1.27.3-bookworm
+    working_dir: /src
+    dns: [10.99.0.5]
+    volumes:
+      - ../../..:/src
+      - runtime:/runtime:ro
+      - ./krb5:/krb5:ro
+      - ./fixtures:/fixtures:ro
+      - gomod:/go/pkg/mod
+    depends_on:
+      sql-init:
+        condition: service_completed_successfully
+      mitkdc:
+        condition: service_started
+    networks:
+      lab:
+        ipv4_address: 10.99.0.40
+
+  grafana:
+    profiles: [dev]
+    image: grafana/grafana-enterprise:${GRAFANA_VERSION:-12.4.0}
+    dns: [10.99.0.5]
+    ports:
+      - '127.0.0.1:3001:3000'
+    environment:
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: mssql
+      GF_AUTH_ANONYMOUS_ENABLED: 'true'
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      KRB5_CONFIG: /krb5/crossrealm.conf
+      KRB5CCNAME: /runtime/bob-tgt.ccache
+    volumes:
+      - type: bind
+        source: ../../../dist
+        target: /var/lib/grafana/plugins/mssql
+        read_only: true
+        bind:
+          create_host_path: false
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - runtime:/runtime:ro
+      - ./krb5:/krb5:ro
+      - ./fixtures:/fixtures:ro
+    depends_on:
+      sql-init:
+        condition: service_completed_successfully
+      mitkdc:
+        condition: service_started
+    networks:
+      lab:
+        ipv4_address: 10.99.0.60
+
+  tools:
+    profiles: [dev]
+    build: ./dc
+    entrypoint: ['sleep', 'infinity']
+    init: true
+    dns: [10.99.0.5]
+    volumes:
+      - runtime:/runtime:ro
+      - ./krb5:/krb5:ro
+      - ./fixtures:/fixtures:ro
+    depends_on:
+      sql-init:
+        condition: service_completed_successfully
+    networks:
+      lab:
+        ipv4_address: 10.99.0.70
