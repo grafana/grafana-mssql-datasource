@@ -1,5 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { openMenu } from 'react-select-event';
+
+import { selectOptionInTest } from '../test/helpers/selectOptionInTest';
 
 import { AzureCredentialsForm, type Props } from './AzureCredentialsForm';
 
@@ -16,8 +18,9 @@ describe('AzureCredentialsForm', () => {
   it('does not offer workload identity when it is disabled in Grafana config', async () => {
     render(<AzureCredentialsForm {...defaultProps} />);
 
-    await userEvent.click(screen.getByRole('combobox'));
+    openMenu(screen.getByRole('combobox'));
 
+    expect(await screen.findByText('App Registration', { selector: '[role="option"] *' })).toBeInTheDocument();
     expect(screen.queryByText('Workload Identity')).not.toBeInTheDocument();
   });
 
@@ -27,8 +30,7 @@ describe('AzureCredentialsForm', () => {
       <AzureCredentialsForm {...defaultProps} workloadIdentityEnabled onCredentialsChange={onCredentialsChange} />
     );
 
-    await userEvent.click(screen.getByRole('combobox'));
-    await userEvent.click(screen.getByText('Workload Identity'));
+    await selectOptionInTest(screen.getByRole('combobox'), 'Workload Identity');
 
     expect(onCredentialsChange).toHaveBeenCalledWith({ authType: 'workloadidentity' });
   });
