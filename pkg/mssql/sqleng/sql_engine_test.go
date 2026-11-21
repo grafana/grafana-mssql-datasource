@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/grafana/grafana-azure-sdk-go/v2/azcredentials"
+	"github.com/grafana/grafana-azure-sdk-go/v2/azsettings"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
@@ -717,6 +719,29 @@ func TestGenerateConnectionString(t *testing.T) {
 			assert.Equal(t, tc.expConnStr, connStr)
 		})
 	}
+}
+
+func TestGenerateConnectionStringAzureWorkloadIdentity(t *testing.T) {
+	logger := backend.NewLoggerWith("logger", "mssql.test")
+	dataSource := DataSourceInfo{
+		URL:      "my-mi.database.windows.net:1433",
+		Database: "database",
+		JsonData: JsonData{
+			AuthenticationType: azureAuthentication,
+		},
+	}
+	azureSettings := &azsettings.AzureSettings{
+		WorkloadIdentityEnabled: true,
+		WorkloadIdentitySettings: &azsettings.WorkloadIdentitySettings{
+			ClientId:  "client-id",
+			TenantId:  "tenant-id",
+			TokenFile: "/var/run/secrets/azure/tokens/azure-identity-token",
+		},
+	}
+
+	connStr, err := generateConnectionString(dataSource, &azcredentials.AzureWorkloadIdentityCredentials{}, kerberos.KerberosAuth{}, logger, azureSettings, "")
+	require.NoError(t, err)
+	assert.Equal(t, "server=my-mi.database.windows.net;database=database;user id=client-id@tenant-id;tokenfilepath=/var/run/secrets/azure/tokens/azure-identity-token;fedauth=ActiveDirectoryWorkloadIdentity;port=1433;", connStr)
 }
 
 func TestApplyFillRowLimit(t *testing.T) {
