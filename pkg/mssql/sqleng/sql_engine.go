@@ -102,7 +102,7 @@ type DataSourceHandler struct {
 	kerberosAuth           kerberos.KerberosAuth
 	driverName             string
 	proxyClient            proxy.Client
-	dbConnections          sync.Map
+	dbConnections          userPoolCache
 }
 
 type QueryJson struct {
@@ -210,11 +210,7 @@ func (e *DataSourceHandler) Dispose() {
 	}
 
 	// Clear any cached user-specific connections
-	e.dbConnections.Range(func(_, conn interface{}) bool {
-		_ = conn.(*sql.DB).Close()
-		return true
-	})
-	e.dbConnections.Clear()
+	e.dbConnections.dispose()
 
 	e.log.Debug("DB disposed")
 }
@@ -236,9 +232,8 @@ func (e *DataSourceHandler) getDB(ctx context.Context) (*sql.DB, error) {
 	}
 	cacheKey := fmt.Sprintf("mssql-%d-%x-%x-%s", e.dsInfo.OrgID, sha256.Sum256([]byte(userCtx.User.Email)), sha256.Sum256([]byte(userCtx.IdToken)), e.dsInfo.UID)
 
-	conn, ok := e.dbConnections.Load(cacheKey)
-	if ok {
-		return conn.(*sql.DB), nil
+	if db, ok := e.dbConnections.load(cacheKey); ok {
+		return db, nil
 	}
 
 	cnnstr, err := generateConnectionString(e.dsInfo, e.azureCredentials, e.kerberosAuth, e.log, e.azureSettings, userCtx.IdToken)
@@ -251,9 +246,7 @@ func (e *DataSourceHandler) getDB(ctx context.Context) (*sql.DB, error) {
 		e.log.Error("Failed connecting to MSSQL", "err", err)
 		return nil, err
 	}
-	e.dbConnections.Store(cacheKey, db)
-
-	return db, nil
+	return e.dbConnections.loadOrStore(cacheKey, db)
 }
 
 func (e *DataSourceHandler) QueryData(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
