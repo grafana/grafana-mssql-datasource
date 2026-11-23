@@ -5,7 +5,7 @@
 - Report health check failures caused by the data source (unreachable host, refused connection, bad credentials or connection settings) as downstream errors instead of plugin errors, so they no longer trigger plugin error-rate alerts ([#124](https://github.com/grafana/grafana-mssql-datasource/pull/124))
 - Fix a crash when running a health check without a user
 - Update `grafana-plugin-sdk-go` to v0.301.0
-- Fix a connection leak with Azure "Current User" authentication. A user's connection pool now closes after 5 minutes without queries, and concurrent first queries open only one pool.
+- Fix a connection leak with Azure "Current User" authentication. A user's connection pool now closes after 5 minutes without queries, and concurrent first queries open only one pool ([#126](https://github.com/grafana/grafana-mssql-datasource/pull/126))
 
 ## 13.0.10
 
