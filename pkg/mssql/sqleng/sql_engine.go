@@ -219,11 +219,13 @@ func (e *DataSourceHandler) Dispose() {
 	e.log.Debug("DB disposed")
 }
 
+var errDBNotInitialized = errors.New("database connection is not initialized")
+
 func (e *DataSourceHandler) getDB(ctx context.Context) (*sql.DB, error) {
 	e.log.Debug("Getting DB...")
 	if e.dsInfo.JsonData.AuthenticationType != azureAuthentication || e.azureCredentials.AzureAuthType() != azcredentials.AzureAuthCurrentUserIdentity {
 		if e.db == nil {
-			return nil, fmt.Errorf("database connection is not initialized")
+			return nil, errDBNotInitialized
 		}
 		return e.db, nil
 	}

@@ -17,20 +17,24 @@ func (e *DataSourceHandler) CheckHealth(ctx context.Context, req *backend.CheckH
 	ctx = azusercontext.WithUserFromHealthCheckReq(ctx, req)
 	db, err := e.getDB(ctx)
 	if err != nil {
-		logCheckHealthError(ctx, e.dsInfo, err)
-		if strings.EqualFold(req.PluginContext.User.Role, "Admin") {
-			return ErrToHealthCheckResult(err)
-		}
-		return &backend.CheckHealthResult{Status: backend.HealthStatusError, Message: e.TransformQueryError(e.log, err).Error()}, nil
+		return e.failedCheckResult(ctx, req, err), nil
 	}
 	if err := db.Ping(); err != nil {
-		logCheckHealthError(ctx, e.dsInfo, err)
-		if strings.EqualFold(req.PluginContext.User.Role, "Admin") {
-			return ErrToHealthCheckResult(err)
-		}
-		return &backend.CheckHealthResult{Status: backend.HealthStatusError, Message: e.TransformQueryError(e.log, err).Error()}, nil
+		return e.failedCheckResult(ctx, req, err), nil
 	}
 	return &backend.CheckHealthResult{Status: backend.HealthStatusOk, Message: "Database Connection OK"}, nil
+}
+
+func (e *DataSourceHandler) failedCheckResult(ctx context.Context, req *backend.CheckHealthRequest, err error) *backend.CheckHealthResult {
+	if !errors.Is(err, errDBNotInitialized) {
+		_ = backend.WithDownstreamErrorSource(ctx)
+	}
+	logCheckHealthError(ctx, e.dsInfo, err)
+	if req.PluginContext.User != nil && strings.EqualFold(req.PluginContext.User.Role, "Admin") {
+		res, _ := ErrToHealthCheckResult(err)
+		return res
+	}
+	return &backend.CheckHealthResult{Status: backend.HealthStatusError, Message: e.TransformQueryError(e.log, err).Error()}
 }
 
 // ErrToHealthCheckResult converts error into user friendly health check message
