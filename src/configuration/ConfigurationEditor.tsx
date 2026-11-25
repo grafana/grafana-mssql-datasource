@@ -124,6 +124,8 @@ export const ConfigurationEditor = (props: DataSourcePluginOptionsEditorProps<Ms
     { value: MSSQLEncryptOptions.false, label: 'false' },
     // eslint-disable-next-line @grafana/i18n/no-untranslated-strings
     { value: MSSQLEncryptOptions.true, label: 'true' },
+    // eslint-disable-next-line @grafana/i18n/no-untranslated-strings
+    { value: MSSQLEncryptOptions.strict, label: 'strict' },
   ];
 
   return (
@@ -217,6 +219,16 @@ export const ConfigurationEditor = (props: DataSourcePluginOptionsEditorProps<Ms
                     <i>{'{{encryptionValue}}'}</i> - Data sent between client and server is encrypted.
                   </Trans>
                 </li>
+                <li>
+                  <Trans
+                    i18nKey="configuration.configuration-editor.description-encrypt-strict"
+                    values={{ encryptionValue: 'strict' }}
+                  >
+                    <i>{'{{encryptionValue}}'}</i> - Data sent between client and server is encrypted using TDS 8.0
+                    strict encryption, and the server certificate is always validated. Requires SQL Server 2022 or
+                    later.
+                  </Trans>
+                </li>
               </ul>
               <Trans i18nKey="configuration.configuration-editor.description-encrypt-older-version">
                 If you&apos;re using an older version of Microsoft SQL Server like 2008 and 2008R2 you may need to
@@ -235,15 +247,18 @@ export const ConfigurationEditor = (props: DataSourcePluginOptionsEditorProps<Ms
           />
         </Field>
 
-        {jsonData.encrypt === MSSQLEncryptOptions.true ? (
+        {jsonData.encrypt === MSSQLEncryptOptions.true || jsonData.encrypt === MSSQLEncryptOptions.strict ? (
           <>
-            <Field
-              htmlFor="skipTlsVerify"
-              label={t('configuration.configuration-editor.label-skip-tls', 'Skip TLS Verify')}
-            >
-              <Switch id="skipTlsVerify" onChange={onSkipTLSVerifyChanged} value={jsonData.tlsSkipVerify || false} />
-            </Field>
-            {jsonData.tlsSkipVerify ? null : (
+            {/* Strict encryption always validates the server certificate, so it has no Skip TLS Verify switch. */}
+            {jsonData.encrypt === MSSQLEncryptOptions.true ? (
+              <Field
+                htmlFor="skipTlsVerify"
+                label={t('configuration.configuration-editor.label-skip-tls', 'Skip TLS Verify')}
+              >
+                <Switch id="skipTlsVerify" onChange={onSkipTLSVerifyChanged} value={jsonData.tlsSkipVerify || false} />
+              </Field>
+            ) : null}
+            {jsonData.encrypt === MSSQLEncryptOptions.true && jsonData.tlsSkipVerify ? null : (
               <>
                 <Field
                   description={
