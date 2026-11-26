@@ -178,6 +178,15 @@ func generateConnectionString(dsInfo DataSourceInfo, azureCredentials azcredenti
 		if certificate != "" {
 			connStr += fmt.Sprintf("certificate=%s;", certificate)
 		}
+	case "strict":
+		connStr += "encrypt=strict;"
+		if hostNameInCertificate != "" {
+			connStr += fmt.Sprintf("hostNameInCertificate=%s;", hostNameInCertificate)
+		}
+
+		if certificate != "" {
+			connStr += fmt.Sprintf("certificate=%s;", certificate)
+		}
 	case "disable":
 		connStr += fmt.Sprintf("encrypt=%s;", dsInfo.JsonData.Encrypt)
 	}
