@@ -27,6 +27,7 @@ export enum MSSQLEncryptOptions {
   disable = 'disable',
   false = 'false',
   true = 'true',
+  strict = 'strict',
 }
 export interface MssqlOptions extends SQLOptions {
   authenticationType?: MSSQLAuthenticationType;
