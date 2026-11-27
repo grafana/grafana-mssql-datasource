@@ -1,5 +1,11 @@
 # Changelog
 
+## 13.1.0
+
+- Add a strict encryption option for TDS 8.0 servers ([#120](https://github.com/grafana/grafana-mssql-datasource/pull/120))
+- Fix a security vulnerability in fast-uri ([#127](https://github.com/grafana/grafana-mssql-datasource/pull/127))
+- Update frontend dependencies ([#116](https://github.com/grafana/grafana-mssql-datasource/pull/116))
+
 ## 13.0.11
 
 - Report health check failures caused by the data source (unreachable host, refused connection, bad credentials or connection settings) as downstream errors instead of plugin errors, so they no longer trigger plugin error-rate alerts ([#124](https://github.com/grafana/grafana-mssql-datasource/pull/124))
