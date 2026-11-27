@@ -1,0 +1,115 @@
+apiVersion: 1
+
+datasources:
+  - name: b-password
+    uid: b-password
+    type: mssql
+    access: proxy
+    url: sql.b.test:1433
+    user: 'alice@B.TEST'
+    jsonData:
+      database: master
+      encrypt: disable
+      authenticationType: 'Windows AD: Username + password'
+      configFilePath: /krb5/single.conf
+    secureJsonData:
+      password: Lab-Alice-1
+  - name: b-keytab
+    uid: b-keytab
+    type: mssql
+    access: proxy
+    url: sql.b.test:1433
+    user: 'alice@B.TEST'
+    jsonData:
+      database: master
+      encrypt: disable
+      authenticationType: 'Windows AD: Keytab'
+      keytabFilePath: /runtime/alice.keytab
+      configFilePath: /krb5/single.conf
+  - name: b-ccache
+    uid: b-ccache
+    type: mssql
+    access: proxy
+    url: sql.b.test:1433
+    user: ''
+    jsonData:
+      database: master
+      encrypt: disable
+      authenticationType: 'Windows AD: Credential cache'
+      credentialCache: /runtime/alice-tgt.ccache
+      configFilePath: /krb5/single.conf
+  - name: b-lookup
+    uid: b-lookup
+    type: mssql
+    access: proxy
+    url: sql.b.test:1433
+    user: 'alice'
+    jsonData:
+      database: master
+      encrypt: disable
+      authenticationType: 'Windows AD: Credential cache file'
+      credentialCacheLookupFile: /fixtures/lookup.json
+      configFilePath: /krb5/single.conf
+  - name: a-password
+    uid: a-password
+    type: mssql
+    access: proxy
+    url: sql.b.test:1433
+    user: 'bob@A.TEST'
+    jsonData:
+      database: master
+      encrypt: disable
+      authenticationType: 'Windows AD: Username + password'
+      configFilePath: /krb5/crossrealm.conf
+    secureJsonData:
+      password: Lab-Bob-Pass-1
+  - name: a-keytab
+    uid: a-keytab
+    type: mssql
+    access: proxy
+    url: sql.b.test:1433
+    user: 'bob@A.TEST'
+    jsonData:
+      database: master
+      encrypt: disable
+      authenticationType: 'Windows AD: Keytab'
+      keytabFilePath: /runtime/bob.keytab
+      configFilePath: /krb5/crossrealm.conf
+  - name: a-ccache
+    uid: a-ccache
+    type: mssql
+    access: proxy
+    url: sql.b.test:1433
+    user: ''
+    jsonData:
+      database: master
+      encrypt: disable
+      authenticationType: 'Windows AD: Credential cache'
+      credentialCache: /runtime/bob-tgt.ccache
+      configFilePath: /krb5/crossrealm.conf
+  - name: a-lookup
+    uid: a-lookup
+    type: mssql
+    access: proxy
+    url: sql.b.test:1433
+    user: 'bob'
+    jsonData:
+      database: master
+      encrypt: disable
+      authenticationType: 'Windows AD: Credential cache file'
+      credentialCacheLookupFile: /fixtures/lookup.json
+      configFilePath: /krb5/crossrealm.conf
+  - name: env-ccache
+    uid: env-ccache
+    type: mssql
+    access: proxy
+    url: sql.b.test:1433
+    user: ''
+    jsonData:
+      database: master
+      encrypt: disable
+      authenticationType: 'Windows AD: Credential cache'
+      credentialCache: ''
+      keytabFilePath: ''
+      credentialCacheLookupFile: ''
+      configFilePath: ''

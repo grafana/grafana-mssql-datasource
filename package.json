@@ -11,6 +11,7 @@
     "lint:fix": "npm run lint -- --fix && prettier --write --list-different .",
     "e2e": "playwright test",
     "server": "docker compose up --build",
+    "server:kerberos": "docker compose -f tests/integration/kerberos/compose.yaml --profile dev up --build -d",
     "sign": "sign-plugin",
     "i18n-extract": "i18next-cli extract --sync-primary"
   },
