@@ -1,0 +1,557 @@
+{
+  "targetApiVersion": "v0alpha1",
+  "settings": {
+    "spec": {
+      "type": "object",
+      "required": [
+        "url"
+      ],
+      "properties": {
+        "jsonData": {
+          "type": "object",
+          "required": [
+            "database"
+          ],
+          "properties": {
+            "UDPConnectionLimit": {
+              "description": "Whole-number UDP size threshold in bytes for Kerberos requests. Set to 1 to always use TCP.",
+              "type": "number",
+              "default": 1,
+              "minimum": 0
+            },
+            "authenticationType": {
+              "description": "SQL Server Authentication is the default. For a direct Kerberos cache, select Windows AD: Credential cache. For a JSON lookup file, select Windows AD: Credential cache file. Azure AD Authentication uses the nested jsonData.azureCredentials object.",
+              "type": "string",
+              "default": "SQL Server Authentication",
+              "enum": [
+                "SQL Server Authentication",
+                "Windows Authentication",
+                "Azure AD Authentication",
+                "Windows AD: Username + password",
+                "Windows AD: Keytab",
+                "Windows AD: Credential cache",
+                "Windows AD: Credential cache file"
+              ]
+            },
+            "azureCredentials": {
+              "type": "object",
+              "properties": {
+                "authType": {
+                  "description": "Store this choice at jsonData.azureCredentials.authType. For Managed Identity set azureCredentials to {\"authType\":\"msi\"}. For Azure Entra Password set authType to ad-password and put clientId and userId in that same object. Grafana settings enable Managed Identity and Entra Password. Current User appears when Entra Password and user identity are enabled.",
+                  "type": "string",
+                  "enum": [
+                    "clientsecret",
+                    "msi",
+                    "ad-password",
+                    "currentuser"
+                  ],
+                  "x-dsconfig-depends-on": "jsonData.authenticationType == 'Azure AD Authentication'",
+                  "x-dsconfig-required-when": "jsonData.authenticationType == 'Azure AD Authentication'"
+                },
+                "azureCloud": {
+                  "description": "Set jsonData.azureCredentials.azureCloud explicitly when provisioning an app registration. The editor initializes this field from Grafana's Azure cloud setting and offers only the public Azure cloud (AzureCloud) in the dropdown.",
+                  "type": "string",
+                  "enum": [
+                    "AzureCloud"
+                  ],
+                  "x-dsconfig-depends-on": "(jsonData.authenticationType == 'Azure AD Authentication' \u0026\u0026 azure.authType == 'clientsecret')",
+                  "x-dsconfig-required-when": "(jsonData.authenticationType == 'Azure AD Authentication' \u0026\u0026 azure.authType == 'clientsecret')"
+                },
+                "clientId": {
+                  "description": "Application client ID stored in jsonData.azureCredentials.clientId.",
+                  "type": "string",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})?$",
+                  "x-dsconfig-depends-on": "(jsonData.authenticationType == 'Azure AD Authentication' \u0026\u0026 azure.authType == 'clientsecret') || (jsonData.authenticationType == 'Azure AD Authentication' \u0026\u0026 azure.authType == 'ad-password')",
+                  "x-dsconfig-required-when": "(jsonData.authenticationType == 'Azure AD Authentication' \u0026\u0026 azure.authType == 'clientsecret') || (jsonData.authenticationType == 'Azure AD Authentication' \u0026\u0026 azure.authType == 'ad-password')"
+                },
+                "tenantId": {
+                  "description": "Microsoft Entra tenant ID of the app registration, stored in jsonData.azureCredentials.tenantId.",
+                  "type": "string",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})?$",
+                  "x-dsconfig-depends-on": "(jsonData.authenticationType == 'Azure AD Authentication' \u0026\u0026 azure.authType == 'clientsecret')",
+                  "x-dsconfig-required-when": "(jsonData.authenticationType == 'Azure AD Authentication' \u0026\u0026 azure.authType == 'clientsecret')"
+                },
+                "userId": {
+                  "description": "Microsoft Entra sign-in username for password authentication, such as user@contoso.onmicrosoft.com. Store it in jsonData.azureCredentials.userId.",
+                  "type": "string",
+                  "x-dsconfig-depends-on": "(jsonData.authenticationType == 'Azure AD Authentication' \u0026\u0026 azure.authType == 'ad-password')",
+                  "x-dsconfig-required-when": "(jsonData.authenticationType == 'Azure AD Authentication' \u0026\u0026 azure.authType == 'ad-password')"
+                }
+              }
+            },
+            "configFilePath": {
+              "description": "Path to the Kerberos configuration on the Grafana server. If unset, the driver uses KRB5_CONFIG, then /etc/krb5.conf.",
+              "type": "string"
+            },
+            "connMaxLifetime": {
+              "description": "Maximum lifetime of a connection in whole seconds. Zero removes the lifetime limit. If omitted, Grafana supplies its configured default.",
+              "type": "number",
+              "minimum": 0
+            },
+            "connectionTimeout": {
+              "description": "Time to wait for a SQL connection in whole seconds. Zero leaves the connection timeout unset.",
+              "type": "number",
+              "default": 0,
+              "minimum": 0
+            },
+            "credentialCache": {
+              "description": "Direct path to the Kerberos credential cache on the Grafana server, such as /tmp/krb5cc_1000. Select Windows AD: Credential cache.",
+              "type": "string",
+              "x-dsconfig-depends-on": "jsonData.authenticationType == 'Windows AD: Credential cache'",
+              "x-dsconfig-required-when": "jsonData.authenticationType == 'Windows AD: Credential cache'"
+            },
+            "credentialCacheLookupFile": {
+              "description": "Path to a JSON lookup file that maps the Kerberos user, SQL database and server address to a credential cache. Select Windows AD: Credential cache file.",
+              "type": "string",
+              "x-dsconfig-depends-on": "jsonData.authenticationType == 'Windows AD: Credential cache file'",
+              "x-dsconfig-required-when": "jsonData.authenticationType == 'Windows AD: Credential cache file'"
+            },
+            "database": {
+              "description": "Name of the SQL Server database to query. Older configurations may store the name in the root database field, which the editor migrates here.",
+              "type": "string"
+            },
+            "disableGrafanaCache": {
+              "description": "Disable Grafana data caching for Current User to keep results specific to each identity.",
+              "type": "boolean",
+              "x-dsconfig-depends-on": "false"
+            },
+            "enableDNSLookupKDC": {
+              "description": "String boolean that controls DNS SRV lookups of Kerberos key distribution centers. Defaults to true.",
+              "type": "string",
+              "default": "true",
+              "pattern": "^(|1|t|T|TRUE|true|True|0|f|F|FALSE|false|False)$"
+            },
+            "enableSecureSocksProxy": {
+              "description": "Route SQL connections through the private data source connection configured in Grafana. Available when the secure SOCKS proxy is enabled on the server.",
+              "type": "boolean",
+              "default": false
+            },
+            "encrypt": {
+              "description": "TLS negotiation with SQL Server. Use disable for clear text, false for login-only encryption unless the server requires more, true for encrypted traffic, or strict for TDS 8.0 with certificate verification.",
+              "type": "string",
+              "default": "false",
+              "enum": [
+                "disable",
+                "false",
+                "true",
+                "strict"
+              ]
+            },
+            "keepAlive": {
+              "description": "TCP keep-alive interval in seconds for the secure SOCKS proxy.",
+              "type": "number",
+              "default": 30,
+              "x-dsconfig-depends-on": "false"
+            },
+            "keytabFilePath": {
+              "description": "Path on the Grafana server to the keytab for the Kerberos principal.",
+              "type": "string",
+              "x-dsconfig-depends-on": "jsonData.authenticationType == 'Windows AD: Keytab'",
+              "x-dsconfig-required-when": "jsonData.authenticationType == 'Windows AD: Keytab'"
+            },
+            "maxIdleConns": {
+              "description": "Maximum idle connections as a whole number. Zero retains none. If omitted, Grafana supplies its configured default.",
+              "type": "number",
+              "minimum": 0,
+              "x-dsconfig-disabled-when": "jsonData.maxIdleConnsAuto == true"
+            },
+            "maxIdleConnsAuto": {
+              "description": "Keep the idle limit in sync when editing the open connection limit. New connections start in auto mode. If pool limits already exist, a missing switch means manual mode. In provisioning, set maxIdleConns explicitly.",
+              "type": "boolean"
+            },
+            "maxOpenConns": {
+              "description": "Maximum open connections as a whole number. Zero removes the limit. If omitted, Grafana supplies its configured default.",
+              "type": "number",
+              "minimum": 0
+            },
+            "oauthPassThru": {
+              "description": "Forward the signed-in user’s identity token to SQL Server. Set to true for Current User.",
+              "type": "boolean",
+              "x-dsconfig-depends-on": "false",
+              "x-dsconfig-required-when": "(jsonData.authenticationType == 'Azure AD Authentication' \u0026\u0026 azure.authType == 'currentuser')"
+            },
+            "secureSocksProxyUsername": {
+              "description": "SOCKS proxy username. Defaults to the data source UID.",
+              "type": "string",
+              "x-dsconfig-depends-on": "false"
+            },
+            "serverName": {
+              "description": "Host name to verify in the SQL Server certificate.",
+              "type": "string",
+              "x-dsconfig-depends-on": "jsonData.encrypt == 'strict' || (jsonData.encrypt == 'true' \u0026\u0026 !sqleng_settings.tlsSkipVerify)"
+            },
+            "sslRootCertFile": {
+              "description": "Path on the Grafana server to a .pem or .der certificate authority file used to verify SQL Server.",
+              "type": "string",
+              "x-dsconfig-depends-on": "jsonData.encrypt == 'strict' || (jsonData.encrypt == 'true' \u0026\u0026 !sqleng_settings.tlsSkipVerify)"
+            },
+            "timeInterval": {
+              "description": "Lower limit for the automatic group-by interval, such as 1m.",
+              "type": "string"
+            },
+            "timeout": {
+              "description": "Time in seconds to establish a connection through the secure SOCKS proxy.",
+              "type": "number",
+              "default": 30,
+              "x-dsconfig-depends-on": "false"
+            },
+            "tlsSkipVerify": {
+              "description": "Skip server certificate verification when encryption is true.",
+              "type": "boolean",
+              "default": false,
+              "x-dsconfig-depends-on": "jsonData.encrypt == 'true'"
+            }
+          }
+        },
+        "url": {
+          "description": "SQL Server host or named instance with an optional port, such as localhost:1433. Omit the URL scheme.",
+          "type": "string"
+        },
+        "user": {
+          "description": "SQL login name or Windows AD principal. Use user@REALM for Kerberos.",
+          "type": "string",
+          "x-dsconfig-depends-on": "!has(jsonData.authenticationType) || jsonData.authenticationType in ['', 'SQL Server Authentication', 'Windows AD: Username + password', 'Windows AD: Keytab', 'Windows AD: Credential cache file']",
+          "x-dsconfig-required-when": "!has(jsonData.authenticationType) || jsonData.authenticationType in ['', 'SQL Server Authentication', 'Windows AD: Username + password', 'Windows AD: Keytab', 'Windows AD: Credential cache file']"
+        }
+      }
+    },
+    "secureValues": [
+      {
+        "key": "password",
+        "description": "Password for the SQL login, Kerberos principal or Azure Entra user."
+      },
+      {
+        "key": "azureClientSecret",
+        "description": "Client secret of the app registration."
+      },
+      {
+        "key": "clientSecret",
+        "description": "Fallback for migrated app registrations when azureClientSecret has never been set."
+      },
+      {
+        "key": "secureSocksProxyPassword",
+        "description": "Password for the secure SOCKS proxy."
+      }
+    ]
+  },
+  "settingsExamples": {
+    "examples": {
+      "": {
+        "summary": "SQL Server Authentication",
+        "value": {
+          "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+          "kind": "DataSource",
+          "metadata": {
+            "name": "mssql"
+          },
+          "secure": {
+            "password": {
+              "create": "\u003cREPLACE_WITH_SECRET\u003e"
+            }
+          },
+          "spec": {
+            "jsonData": {
+              "authenticationType": "SQL Server Authentication",
+              "connMaxLifetime": 14400,
+              "connectionTimeout": 0,
+              "database": "grafana",
+              "encrypt": "false",
+              "maxIdleConns": 100,
+              "maxIdleConnsAuto": true,
+              "maxOpenConns": 100
+            },
+            "title": "MSSQL",
+            "url": "localhost:1433",
+            "user": "grafana"
+          }
+        }
+      },
+      "appRegistration": {
+        "summary": "App Registration",
+        "value": {
+          "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+          "kind": "DataSource",
+          "metadata": {
+            "name": "mssql"
+          },
+          "secure": {
+            "azureClientSecret": {
+              "create": "\u003cREPLACE_WITH_SECRET\u003e"
+            }
+          },
+          "spec": {
+            "jsonData": {
+              "authenticationType": "Azure AD Authentication",
+              "azureCredentials": {
+                "authType": "clientsecret",
+                "azureCloud": "AzureCloud",
+                "clientId": "00000000-0000-0000-0000-000000000002",
+                "tenantId": "00000000-0000-0000-0000-000000000001"
+              },
+              "database": "grafana",
+              "encrypt": "true"
+            },
+            "title": "MSSQL",
+            "url": "example.database.windows.net:1433"
+          }
+        }
+      },
+      "currentUser": {
+        "summary": "Current User",
+        "value": {
+          "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+          "kind": "DataSource",
+          "metadata": {
+            "name": "mssql"
+          },
+          "spec": {
+            "jsonData": {
+              "authenticationType": "Azure AD Authentication",
+              "azureCredentials": {
+                "authType": "currentuser"
+              },
+              "database": "grafana",
+              "disableGrafanaCache": true,
+              "encrypt": "true",
+              "oauthPassThru": true
+            },
+            "title": "MSSQL",
+            "url": "example.database.windows.net:1433"
+          }
+        }
+      },
+      "entraPassword": {
+        "summary": "Azure Entra Password",
+        "value": {
+          "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+          "kind": "DataSource",
+          "metadata": {
+            "name": "mssql"
+          },
+          "secure": {
+            "password": {
+              "create": "\u003cREPLACE_WITH_SECRET\u003e"
+            }
+          },
+          "spec": {
+            "jsonData": {
+              "authenticationType": "Azure AD Authentication",
+              "azureCredentials": {
+                "authType": "ad-password",
+                "clientId": "00000000-0000-0000-0000-000000000002",
+                "userId": "user@example.com"
+              },
+              "database": "grafana",
+              "encrypt": "true"
+            },
+            "title": "MSSQL",
+            "url": "example.database.windows.net:1433"
+          }
+        }
+      },
+      "kerberosCache": {
+        "summary": "Windows AD: Credential cache",
+        "value": {
+          "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+          "kind": "DataSource",
+          "metadata": {
+            "name": "mssql"
+          },
+          "spec": {
+            "jsonData": {
+              "authenticationType": "Windows AD: Credential cache",
+              "credentialCache": "/tmp/krb5cc_1000",
+              "database": "grafana"
+            },
+            "title": "MSSQL",
+            "url": "localhost:1433"
+          }
+        }
+      },
+      "kerberosCacheLookup": {
+        "summary": "Windows AD: Credential cache file",
+        "value": {
+          "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+          "kind": "DataSource",
+          "metadata": {
+            "name": "mssql"
+          },
+          "spec": {
+            "jsonData": {
+              "authenticationType": "Windows AD: Credential cache file",
+              "credentialCacheLookupFile": "/home/grot/cache.json",
+              "database": "grafana"
+            },
+            "title": "MSSQL",
+            "url": "localhost:1433",
+            "user": "name@EXAMPLE.COM"
+          }
+        }
+      },
+      "kerberosKeytab": {
+        "summary": "Windows AD: Keytab",
+        "value": {
+          "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+          "kind": "DataSource",
+          "metadata": {
+            "name": "mssql"
+          },
+          "spec": {
+            "jsonData": {
+              "authenticationType": "Windows AD: Keytab",
+              "database": "grafana",
+              "keytabFilePath": "/home/grot/grot.keytab"
+            },
+            "title": "MSSQL",
+            "url": "localhost:1433",
+            "user": "name@EXAMPLE.COM"
+          }
+        }
+      },
+      "kerberosPassword": {
+        "summary": "Windows AD: Username + password",
+        "value": {
+          "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+          "kind": "DataSource",
+          "metadata": {
+            "name": "mssql"
+          },
+          "secure": {
+            "password": {
+              "create": "\u003cREPLACE_WITH_SECRET\u003e"
+            }
+          },
+          "spec": {
+            "jsonData": {
+              "authenticationType": "Windows AD: Username + password",
+              "database": "grafana"
+            },
+            "title": "MSSQL",
+            "url": "localhost:1433",
+            "user": "name@EXAMPLE.COM"
+          }
+        }
+      },
+      "managedIdentity": {
+        "summary": "Managed Identity",
+        "value": {
+          "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+          "kind": "DataSource",
+          "metadata": {
+            "name": "mssql"
+          },
+          "spec": {
+            "jsonData": {
+              "authenticationType": "Azure AD Authentication",
+              "azureCredentials": {
+                "authType": "msi"
+              },
+              "database": "grafana",
+              "encrypt": "true"
+            },
+            "title": "MSSQL",
+            "url": "example.database.windows.net:1433"
+          }
+        }
+      },
+      "privateConnection": {
+        "summary": "SQL Server Authentication via a Grafana Cloud private data source connection",
+        "value": {
+          "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+          "kind": "DataSource",
+          "metadata": {
+            "name": "mssql"
+          },
+          "secure": {
+            "password": {
+              "create": "\u003cREPLACE_WITH_SECRET\u003e"
+            }
+          },
+          "spec": {
+            "jsonData": {
+              "authenticationType": "SQL Server Authentication",
+              "database": "grafana",
+              "enableSecureSocksProxy": true,
+              "encrypt": "true",
+              "secureSocksProxyUsername": "\u003cPRIVATE_NETWORK_ID\u003e"
+            },
+            "title": "MSSQL",
+            "url": "sql.example.com:1433",
+            "user": "grafana"
+          }
+        }
+      },
+      "skipTLSVerification": {
+        "summary": "SQL Server Authentication with encryption and skipped certificate verification",
+        "value": {
+          "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+          "kind": "DataSource",
+          "metadata": {
+            "name": "mssql"
+          },
+          "secure": {
+            "password": {
+              "create": "\u003cREPLACE_WITH_SECRET\u003e"
+            }
+          },
+          "spec": {
+            "jsonData": {
+              "authenticationType": "SQL Server Authentication",
+              "database": "grafana",
+              "encrypt": "true",
+              "tlsSkipVerify": true
+            },
+            "title": "MSSQL",
+            "url": "localhost:1433",
+            "user": "grafana"
+          }
+        }
+      },
+      "strictEncryption": {
+        "summary": "Self-managed Grafana with strict encryption and a local CA for SQL Server 2022 or later",
+        "value": {
+          "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+          "kind": "DataSource",
+          "metadata": {
+            "name": "mssql"
+          },
+          "secure": {
+            "password": {
+              "create": "\u003cREPLACE_WITH_SECRET\u003e"
+            }
+          },
+          "spec": {
+            "jsonData": {
+              "authenticationType": "SQL Server Authentication",
+              "database": "grafana",
+              "encrypt": "strict",
+              "serverName": "sql.example.com",
+              "sslRootCertFile": "/etc/grafana/certs/sql-ca.pem"
+            },
+            "title": "MSSQL",
+            "url": "sql.example.com:1433",
+            "user": "grafana"
+          }
+        }
+      },
+      "windows": {
+        "summary": "Windows Authentication when Grafana runs on Windows under an account with SQL Server access",
+        "value": {
+          "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+          "kind": "DataSource",
+          "metadata": {
+            "name": "mssql"
+          },
+          "spec": {
+            "jsonData": {
+              "authenticationType": "Windows Authentication",
+              "database": "grafana"
+            },
+            "title": "MSSQL",
+            "url": "localhost:1433"
+          }
+        }
+      }
+    }
+  }
+}

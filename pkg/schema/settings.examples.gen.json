@@ -1,0 +1,320 @@
+{
+  "examples": {
+    "": {
+      "summary": "SQL Server Authentication",
+      "value": {
+        "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+        "kind": "DataSource",
+        "metadata": {
+          "name": "mssql"
+        },
+        "secure": {
+          "password": {
+            "create": "\u003cREPLACE_WITH_SECRET\u003e"
+          }
+        },
+        "spec": {
+          "jsonData": {
+            "authenticationType": "SQL Server Authentication",
+            "connMaxLifetime": 14400,
+            "connectionTimeout": 0,
+            "database": "grafana",
+            "encrypt": "false",
+            "maxIdleConns": 100,
+            "maxIdleConnsAuto": true,
+            "maxOpenConns": 100
+          },
+          "title": "MSSQL",
+          "url": "localhost:1433",
+          "user": "grafana"
+        }
+      }
+    },
+    "appRegistration": {
+      "summary": "App Registration",
+      "value": {
+        "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+        "kind": "DataSource",
+        "metadata": {
+          "name": "mssql"
+        },
+        "secure": {
+          "azureClientSecret": {
+            "create": "\u003cREPLACE_WITH_SECRET\u003e"
+          }
+        },
+        "spec": {
+          "jsonData": {
+            "authenticationType": "Azure AD Authentication",
+            "azureCredentials": {
+              "authType": "clientsecret",
+              "azureCloud": "AzureCloud",
+              "clientId": "00000000-0000-0000-0000-000000000002",
+              "tenantId": "00000000-0000-0000-0000-000000000001"
+            },
+            "database": "grafana",
+            "encrypt": "true"
+          },
+          "title": "MSSQL",
+          "url": "example.database.windows.net:1433"
+        }
+      }
+    },
+    "currentUser": {
+      "summary": "Current User",
+      "value": {
+        "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+        "kind": "DataSource",
+        "metadata": {
+          "name": "mssql"
+        },
+        "spec": {
+          "jsonData": {
+            "authenticationType": "Azure AD Authentication",
+            "azureCredentials": {
+              "authType": "currentuser"
+            },
+            "database": "grafana",
+            "disableGrafanaCache": true,
+            "encrypt": "true",
+            "oauthPassThru": true
+          },
+          "title": "MSSQL",
+          "url": "example.database.windows.net:1433"
+        }
+      }
+    },
+    "entraPassword": {
+      "summary": "Azure Entra Password",
+      "value": {
+        "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+        "kind": "DataSource",
+        "metadata": {
+          "name": "mssql"
+        },
+        "secure": {
+          "password": {
+            "create": "\u003cREPLACE_WITH_SECRET\u003e"
+          }
+        },
+        "spec": {
+          "jsonData": {
+            "authenticationType": "Azure AD Authentication",
+            "azureCredentials": {
+              "authType": "ad-password",
+              "clientId": "00000000-0000-0000-0000-000000000002",
+              "userId": "user@example.com"
+            },
+            "database": "grafana",
+            "encrypt": "true"
+          },
+          "title": "MSSQL",
+          "url": "example.database.windows.net:1433"
+        }
+      }
+    },
+    "kerberosCache": {
+      "summary": "Windows AD: Credential cache",
+      "value": {
+        "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+        "kind": "DataSource",
+        "metadata": {
+          "name": "mssql"
+        },
+        "spec": {
+          "jsonData": {
+            "authenticationType": "Windows AD: Credential cache",
+            "credentialCache": "/tmp/krb5cc_1000",
+            "database": "grafana"
+          },
+          "title": "MSSQL",
+          "url": "localhost:1433"
+        }
+      }
+    },
+    "kerberosCacheLookup": {
+      "summary": "Windows AD: Credential cache file",
+      "value": {
+        "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+        "kind": "DataSource",
+        "metadata": {
+          "name": "mssql"
+        },
+        "spec": {
+          "jsonData": {
+            "authenticationType": "Windows AD: Credential cache file",
+            "credentialCacheLookupFile": "/home/grot/cache.json",
+            "database": "grafana"
+          },
+          "title": "MSSQL",
+          "url": "localhost:1433",
+          "user": "name@EXAMPLE.COM"
+        }
+      }
+    },
+    "kerberosKeytab": {
+      "summary": "Windows AD: Keytab",
+      "value": {
+        "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+        "kind": "DataSource",
+        "metadata": {
+          "name": "mssql"
+        },
+        "spec": {
+          "jsonData": {
+            "authenticationType": "Windows AD: Keytab",
+            "database": "grafana",
+            "keytabFilePath": "/home/grot/grot.keytab"
+          },
+          "title": "MSSQL",
+          "url": "localhost:1433",
+          "user": "name@EXAMPLE.COM"
+        }
+      }
+    },
+    "kerberosPassword": {
+      "summary": "Windows AD: Username + password",
+      "value": {
+        "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+        "kind": "DataSource",
+        "metadata": {
+          "name": "mssql"
+        },
+        "secure": {
+          "password": {
+            "create": "\u003cREPLACE_WITH_SECRET\u003e"
+          }
+        },
+        "spec": {
+          "jsonData": {
+            "authenticationType": "Windows AD: Username + password",
+            "database": "grafana"
+          },
+          "title": "MSSQL",
+          "url": "localhost:1433",
+          "user": "name@EXAMPLE.COM"
+        }
+      }
+    },
+    "managedIdentity": {
+      "summary": "Managed Identity",
+      "value": {
+        "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+        "kind": "DataSource",
+        "metadata": {
+          "name": "mssql"
+        },
+        "spec": {
+          "jsonData": {
+            "authenticationType": "Azure AD Authentication",
+            "azureCredentials": {
+              "authType": "msi"
+            },
+            "database": "grafana",
+            "encrypt": "true"
+          },
+          "title": "MSSQL",
+          "url": "example.database.windows.net:1433"
+        }
+      }
+    },
+    "privateConnection": {
+      "summary": "SQL Server Authentication via a Grafana Cloud private data source connection",
+      "value": {
+        "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+        "kind": "DataSource",
+        "metadata": {
+          "name": "mssql"
+        },
+        "secure": {
+          "password": {
+            "create": "\u003cREPLACE_WITH_SECRET\u003e"
+          }
+        },
+        "spec": {
+          "jsonData": {
+            "authenticationType": "SQL Server Authentication",
+            "database": "grafana",
+            "enableSecureSocksProxy": true,
+            "encrypt": "true",
+            "secureSocksProxyUsername": "\u003cPRIVATE_NETWORK_ID\u003e"
+          },
+          "title": "MSSQL",
+          "url": "sql.example.com:1433",
+          "user": "grafana"
+        }
+      }
+    },
+    "skipTLSVerification": {
+      "summary": "SQL Server Authentication with encryption and skipped certificate verification",
+      "value": {
+        "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+        "kind": "DataSource",
+        "metadata": {
+          "name": "mssql"
+        },
+        "secure": {
+          "password": {
+            "create": "\u003cREPLACE_WITH_SECRET\u003e"
+          }
+        },
+        "spec": {
+          "jsonData": {
+            "authenticationType": "SQL Server Authentication",
+            "database": "grafana",
+            "encrypt": "true",
+            "tlsSkipVerify": true
+          },
+          "title": "MSSQL",
+          "url": "localhost:1433",
+          "user": "grafana"
+        }
+      }
+    },
+    "strictEncryption": {
+      "summary": "Self-managed Grafana with strict encryption and a local CA for SQL Server 2022 or later",
+      "value": {
+        "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+        "kind": "DataSource",
+        "metadata": {
+          "name": "mssql"
+        },
+        "secure": {
+          "password": {
+            "create": "\u003cREPLACE_WITH_SECRET\u003e"
+          }
+        },
+        "spec": {
+          "jsonData": {
+            "authenticationType": "SQL Server Authentication",
+            "database": "grafana",
+            "encrypt": "strict",
+            "serverName": "sql.example.com",
+            "sslRootCertFile": "/etc/grafana/certs/sql-ca.pem"
+          },
+          "title": "MSSQL",
+          "url": "sql.example.com:1433",
+          "user": "grafana"
+        }
+      }
+    },
+    "windows": {
+      "summary": "Windows Authentication when Grafana runs on Windows under an account with SQL Server access",
+      "value": {
+        "apiVersion": "mssql.datasource.grafana.app/v0alpha1",
+        "kind": "DataSource",
+        "metadata": {
+          "name": "mssql"
+        },
+        "spec": {
+          "jsonData": {
+            "authenticationType": "Windows Authentication",
+            "database": "grafana"
+          },
+          "title": "MSSQL",
+          "url": "localhost:1433"
+        }
+      }
+    }
+  }
+}

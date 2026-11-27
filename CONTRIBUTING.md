@@ -77,6 +77,21 @@ npm run server
 npm run e2e
 ```
 
+## Data source configuration schema
+
+Edit `pkg/schema/dsconfig.json` when a setting changes. It describes root fields, public `jsonData` settings and secret `secureJsonData` keys. Keep its schema URL pinned to the `github.com/grafana/dsconfig/dsconfig` version in `go.mod`.
+
+The conformance test in `pkg/schema/dsconfig_test.go` uses the MSSQL fields of `sqleng.JsonData` and adds the settings read by `kerberos.GetKerberosSettings`, the Azure and proxy SDKs, and the editor. Update the test model, secure key list or configuration examples when those settings change.
+
+Run these commands from the repository root:
+
+```sh
+go generate ./pkg/schema
+go test ./pkg/schema
+```
+
+Generation writes `pkg/schema/schema.gen.json`, `pkg/schema/settings.gen.json` and `pkg/schema/settings.examples.gen.json`. The production webpack build copies the handwritten schema and the three generated files into `dist/schema/`.
+
 ## Release
 
 You need commit access to the repository to publish a release.

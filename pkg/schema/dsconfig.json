@@ -1,0 +1,697 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/dsconfig/refs/tags/dsconfig/v0.0.13/dsconfig/schema.json",
+  "schemaVersion": "v1",
+  "pluginType": "mssql",
+  "pluginName": "Microsoft SQL Server",
+  "docURL": "https://grafana.com/docs/grafana/latest/datasources/mssql/configure/",
+  "fields": [
+    {
+      "id": "jsonData.encrypt",
+      "key": "encrypt",
+      "label": "Encrypt",
+      "description": "TLS negotiation with SQL Server. Use disable for clear text, false for login-only encryption unless the server requires more, true for encrypted traffic, or strict for TDS 8.0 with certificate verification.",
+      "valueType": "string",
+      "target": "jsonData",
+      "defaultValue": "false",
+      "validations": [
+        {
+          "type": "allowedValues",
+          "values": [
+            "disable",
+            "false",
+            "true",
+            "strict"
+          ]
+        }
+      ],
+      "ui": {
+        "component": "select",
+        "options": [
+          {
+            "label": "disable",
+            "value": "disable"
+          },
+          {
+            "label": "false",
+            "value": "false"
+          },
+          {
+            "label": "true",
+            "value": "true"
+          },
+          {
+            "label": "strict",
+            "value": "strict"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sqleng_settings.tlsSkipVerify",
+      "key": "tlsSkipVerify",
+      "label": "Skip TLS Verify",
+      "valueType": "boolean",
+      "target": "jsonData",
+      "role": "transport.tlsSkipVerify",
+      "defaultValue": false,
+      "dependsOn": "jsonData.encrypt == 'true'",
+      "ui": {
+        "component": "switch"
+      },
+      "description": "Skip server certificate verification when encryption is true."
+    },
+    {
+      "id": "sqleng_settings.sslRootCertFile",
+      "key": "sslRootCertFile",
+      "label": "TLS/SSL Root Certificate",
+      "description": "Path on the Grafana server to a .pem or .der certificate authority file used to verify SQL Server.",
+      "valueType": "string",
+      "target": "jsonData",
+      "role": "tls.caCert",
+      "dependsOn": "jsonData.encrypt == 'strict' || (jsonData.encrypt == 'true' && !sqleng_settings.tlsSkipVerify)",
+      "ui": {
+        "component": "input",
+        "placeholder": "TLS/SSL root certificate file path"
+      }
+    },
+    {
+      "id": "jsonData.serverName",
+      "key": "serverName",
+      "label": "Hostname in server certificate",
+      "valueType": "string",
+      "target": "jsonData",
+      "role": "tls.serverName",
+      "dependsOn": "jsonData.encrypt == 'strict' || (jsonData.encrypt == 'true' && !sqleng_settings.tlsSkipVerify)",
+      "ui": {
+        "component": "input",
+        "placeholder": "Common Name (CN) in server certificate"
+      },
+      "description": "Host name to verify in the SQL Server certificate."
+    },
+    {
+      "id": "jsonData.authenticationType",
+      "key": "authenticationType",
+      "label": "Authentication Type",
+      "description": "SQL Server Authentication is the default. For a direct Kerberos cache, select Windows AD: Credential cache. For a JSON lookup file, select Windows AD: Credential cache file. Azure AD Authentication uses the nested jsonData.azureCredentials object.",
+      "valueType": "string",
+      "target": "jsonData",
+      "role": "auth.discriminator",
+      "defaultValue": "SQL Server Authentication",
+      "validations": [
+        {
+          "type": "allowedValues",
+          "values": [
+            "SQL Server Authentication",
+            "Windows Authentication",
+            "Azure AD Authentication",
+            "Windows AD: Username + password",
+            "Windows AD: Keytab",
+            "Windows AD: Credential cache",
+            "Windows AD: Credential cache file"
+          ]
+        }
+      ],
+      "ui": {
+        "component": "select",
+        "options": [
+          {
+            "label": "SQL Server Authentication",
+            "value": "SQL Server Authentication"
+          },
+          {
+            "label": "Windows Authentication",
+            "value": "Windows Authentication"
+          },
+          {
+            "label": "Windows AD: Username + password",
+            "value": "Windows AD: Username + password"
+          },
+          {
+            "label": "Windows AD: Keytab file",
+            "value": "Windows AD: Keytab"
+          },
+          {
+            "label": "Windows AD: Credential cache",
+            "value": "Windows AD: Credential cache"
+          },
+          {
+            "label": "Windows AD: Credential cache file",
+            "value": "Windows AD: Credential cache file"
+          },
+          {
+            "label": "Azure AD Authentication",
+            "value": "Azure AD Authentication"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sqleng_settings.user",
+      "key": "user",
+      "label": "Username",
+      "description": "SQL login name or Windows AD principal. Use user@REALM for Kerberos.",
+      "valueType": "string",
+      "target": "root",
+      "role": "auth.basic.username",
+      "dependsOn": "!has(jsonData.authenticationType) || jsonData.authenticationType in ['', 'SQL Server Authentication', 'Windows AD: Username + password', 'Windows AD: Keytab', 'Windows AD: Credential cache file']",
+      "requiredWhen": "!has(jsonData.authenticationType) || jsonData.authenticationType in ['', 'SQL Server Authentication', 'Windows AD: Username + password', 'Windows AD: Keytab', 'Windows AD: Credential cache file']",
+      "ui": {
+        "component": "input",
+        "placeholder": "user"
+      }
+    },
+    {
+      "id": "sqleng_settings.password",
+      "key": "password",
+      "label": "Password",
+      "valueType": "string",
+      "target": "secureJsonData",
+      "role": "auth.basic.password",
+      "dependsOn": "!has(jsonData.authenticationType) || jsonData.authenticationType in ['', 'SQL Server Authentication', 'Windows AD: Username + password'] || (jsonData.authenticationType == 'Azure AD Authentication' && 'ad-password' == azure.authType)",
+      "requiredWhen": "!has(jsonData.authenticationType) || jsonData.authenticationType in ['', 'SQL Server Authentication', 'Windows AD: Username + password'] || (jsonData.authenticationType == 'Azure AD Authentication' && 'ad-password' == azure.authType)",
+      "ui": {
+        "component": "input",
+        "placeholder": "Password"
+      },
+      "description": "Password for the SQL login, Kerberos principal or Azure Entra user."
+    },
+    {
+      "id": "jsonData.keytabFilePath",
+      "key": "keytabFilePath",
+      "label": "Keytab file path",
+      "valueType": "string",
+      "target": "jsonData",
+      "dependsOn": "jsonData.authenticationType == 'Windows AD: Keytab'",
+      "requiredWhen": "jsonData.authenticationType == 'Windows AD: Keytab'",
+      "ui": {
+        "component": "input",
+        "placeholder": "/home/grot/grot.keytab"
+      },
+      "description": "Path on the Grafana server to the keytab for the Kerberos principal."
+    },
+    {
+      "id": "jsonData.credentialCache",
+      "key": "credentialCache",
+      "label": "Credential cache path",
+      "valueType": "string",
+      "target": "jsonData",
+      "dependsOn": "jsonData.authenticationType == 'Windows AD: Credential cache'",
+      "requiredWhen": "jsonData.authenticationType == 'Windows AD: Credential cache'",
+      "ui": {
+        "component": "input",
+        "placeholder": "/tmp/krb5cc_1000"
+      },
+      "description": "Direct path to the Kerberos credential cache on the Grafana server, such as /tmp/krb5cc_1000. Select Windows AD: Credential cache."
+    },
+    {
+      "id": "jsonData.credentialCacheLookupFile",
+      "key": "credentialCacheLookupFile",
+      "label": "Credential cache file path",
+      "valueType": "string",
+      "target": "jsonData",
+      "dependsOn": "jsonData.authenticationType == 'Windows AD: Credential cache file'",
+      "requiredWhen": "jsonData.authenticationType == 'Windows AD: Credential cache file'",
+      "ui": {
+        "component": "input",
+        "placeholder": "/home/grot/cache.json"
+      },
+      "description": "Path to a JSON lookup file that maps the Kerberos user, SQL database and server address to a credential cache. Select Windows AD: Credential cache file."
+    },
+    {
+      "id": "azure.authType",
+      "key": "authType",
+      "section": "azureCredentials",
+      "label": "Authentication type",
+      "description": "Store this choice at jsonData.azureCredentials.authType. For Managed Identity set azureCredentials to {\"authType\":\"msi\"}. For Azure Entra Password set authType to ad-password and put clientId and userId in that same object. Grafana settings enable Managed Identity and Entra Password. Current User appears when Entra Password and user identity are enabled.",
+      "valueType": "string",
+      "target": "jsonData",
+      "role": "auth.discriminator",
+      "validations": [
+        {
+          "type": "allowedValues",
+          "values": [
+            "clientsecret",
+            "msi",
+            "ad-password",
+            "currentuser"
+          ]
+        }
+      ],
+      "ui": {
+        "component": "select",
+        "options": [
+          {
+            "value": "clientsecret",
+            "label": "App Registration"
+          },
+          {
+            "value": "msi",
+            "label": "Managed Identity"
+          },
+          {
+            "value": "ad-password",
+            "label": "Azure Entra Password"
+          },
+          {
+            "value": "currentuser",
+            "label": "Current User"
+          }
+        ]
+      },
+      "dependsOn": "jsonData.authenticationType == 'Azure AD Authentication'",
+      "requiredWhen": "jsonData.authenticationType == 'Azure AD Authentication'",
+      "effects": [
+        {
+          "when": "value == 'currentuser'",
+          "set": {
+            "azure_oauthPassThru": true,
+            "jsonData.disableGrafanaCache": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "azure_azureCloud",
+      "key": "azureCloud",
+      "section": "azureCredentials",
+      "label": "Azure Cloud",
+      "valueType": "string",
+      "target": "jsonData",
+      "dependsOn": "(jsonData.authenticationType == 'Azure AD Authentication' && azure.authType == 'clientsecret')",
+      "ui": {
+        "component": "select",
+        "options": [
+          {
+            "label": "Azure",
+            "value": "AzureCloud"
+          }
+        ]
+      },
+      "description": "Set jsonData.azureCredentials.azureCloud explicitly when provisioning an app registration. The editor initializes this field from Grafana's Azure cloud setting and offers only the public Azure cloud (AzureCloud) in the dropdown.",
+      "requiredWhen": "(jsonData.authenticationType == 'Azure AD Authentication' && azure.authType == 'clientsecret')",
+      "validations": [
+        {
+          "type": "allowedValues",
+          "values": [
+            "AzureCloud"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "azure_tenantId",
+      "key": "tenantId",
+      "section": "azureCredentials",
+      "label": "Directory (tenant) ID",
+      "valueType": "string",
+      "target": "jsonData",
+      "dependsOn": "(jsonData.authenticationType == 'Azure AD Authentication' && azure.authType == 'clientsecret')",
+      "requiredWhen": "(jsonData.authenticationType == 'Azure AD Authentication' && azure.authType == 'clientsecret')",
+      "validations": [
+        {
+          "type": "pattern",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})?$",
+          "message": "Tenant ID is required"
+        }
+      ],
+      "ui": {
+        "component": "input",
+        "placeholder": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+      },
+      "description": "Microsoft Entra tenant ID of the app registration, stored in jsonData.azureCredentials.tenantId."
+    },
+    {
+      "id": "azure_clientId",
+      "key": "clientId",
+      "section": "azureCredentials",
+      "label": "Application (client) ID",
+      "valueType": "string",
+      "target": "jsonData",
+      "dependsOn": "(jsonData.authenticationType == 'Azure AD Authentication' && azure.authType == 'clientsecret') || (jsonData.authenticationType == 'Azure AD Authentication' && azure.authType == 'ad-password')",
+      "requiredWhen": "(jsonData.authenticationType == 'Azure AD Authentication' && azure.authType == 'clientsecret') || (jsonData.authenticationType == 'Azure AD Authentication' && azure.authType == 'ad-password')",
+      "validations": [
+        {
+          "type": "pattern",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})?$",
+          "message": "Client ID is required"
+        }
+      ],
+      "ui": {
+        "component": "input",
+        "placeholder": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+      },
+      "description": "Application client ID stored in jsonData.azureCredentials.clientId."
+    },
+    {
+      "id": "azure_userId",
+      "key": "userId",
+      "section": "azureCredentials",
+      "label": "User ID",
+      "valueType": "string",
+      "target": "jsonData",
+      "dependsOn": "(jsonData.authenticationType == 'Azure AD Authentication' && azure.authType == 'ad-password')",
+      "requiredWhen": "(jsonData.authenticationType == 'Azure AD Authentication' && azure.authType == 'ad-password')",
+      "ui": {
+        "component": "input",
+        "placeholder": "user@contoso.onmicrosoft.com"
+      },
+      "description": "Microsoft Entra sign-in username for password authentication, such as user@contoso.onmicrosoft.com. Store it in jsonData.azureCredentials.userId."
+    },
+    {
+      "id": "azure_azureClientSecret",
+      "key": "azureClientSecret",
+      "label": "Client Secret",
+      "valueType": "string",
+      "target": "secureJsonData",
+      "dependsOn": "(jsonData.authenticationType == 'Azure AD Authentication' && azure.authType == 'clientsecret')",
+      "requiredWhen": "jsonData.authenticationType == 'Azure AD Authentication' && azure.authType == 'clientsecret' && (!has(azure.legacyClientSecret) || azure.legacyClientSecret == '')",
+      "ui": {
+        "component": "input",
+        "placeholder": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+      },
+      "description": "Client secret of the app registration."
+    },
+    {
+      "id": "azure.legacyClientSecret",
+      "key": "clientSecret",
+      "label": "Legacy Azure client secret",
+      "description": "Fallback for migrated app registrations when azureClientSecret has never been set.",
+      "valueType": "string",
+      "target": "secureJsonData",
+      "dependsOn": "false"
+    },
+    {
+      "id": "azure_oauthPassThru",
+      "key": "oauthPassThru",
+      "label": "Forward OAuth Identity",
+      "valueType": "boolean",
+      "target": "jsonData",
+      "role": "auth.forwardOAuthToken.enabled",
+      "dependsOn": "false",
+      "description": "Forward the signed-in user’s identity token to SQL Server. Set to true for Current User.",
+      "requiredWhen": "(jsonData.authenticationType == 'Azure AD Authentication' && azure.authType == 'currentuser')"
+    },
+    {
+      "id": "jsonData.disableGrafanaCache",
+      "key": "disableGrafanaCache",
+      "label": "Disable Grafana cache",
+      "description": "Disable Grafana data caching for Current User to keep results specific to each identity.",
+      "valueType": "boolean",
+      "target": "jsonData",
+      "dependsOn": "false"
+    },
+    {
+      "id": "jsonData.configFilePath",
+      "key": "configFilePath",
+      "label": "krb5 config file path",
+      "description": "Path to the Kerberos configuration on the Grafana server. If unset, the driver uses KRB5_CONFIG, then /etc/krb5.conf.",
+      "valueType": "string",
+      "target": "jsonData",
+      "ui": {
+        "component": "input"
+      }
+    },
+    {
+      "id": "jsonData.UDPConnectionLimit",
+      "key": "UDPConnectionLimit",
+      "label": "UDP Preference Limit",
+      "description": "Whole-number UDP size threshold in bytes for Kerberos requests. Set to 1 to always use TCP.",
+      "valueType": "number",
+      "target": "jsonData",
+      "ui": {
+        "component": "input",
+        "placeholder": "0"
+      },
+      "defaultValue": 1,
+      "validations": [
+        {
+          "type": "range",
+          "min": 0
+        }
+      ]
+    },
+    {
+      "id": "jsonData.enableDNSLookupKDC",
+      "key": "enableDNSLookupKDC",
+      "label": "DNS Lookup KDC",
+      "description": "String boolean that controls DNS SRV lookups of Kerberos key distribution centers. Defaults to true.",
+      "valueType": "string",
+      "target": "jsonData",
+      "ui": {
+        "component": "input",
+        "placeholder": "true"
+      },
+      "defaultValue": "true",
+      "validations": [
+        {
+          "type": "pattern",
+          "pattern": "^(|1|t|T|TRUE|true|True|0|f|F|FALSE|false|False)$"
+        }
+      ]
+    },
+    {
+      "id": "jsonData.maxIdleConnsAuto",
+      "key": "maxIdleConnsAuto",
+      "label": "Auto max idle",
+      "description": "Keep the idle limit in sync when editing the open connection limit. New connections start in auto mode. If pool limits already exist, a missing switch means manual mode. In provisioning, set maxIdleConns explicitly.",
+      "valueType": "boolean",
+      "target": "jsonData",
+      "ui": {
+        "component": "switch"
+      }
+    },
+    {
+      "id": "sqleng_settings.maxOpenConns",
+      "key": "maxOpenConns",
+      "label": "Max open",
+      "description": "Maximum open connections as a whole number. Zero removes the limit. If omitted, Grafana supplies its configured default.",
+      "valueType": "number",
+      "target": "jsonData",
+      "ui": {
+        "component": "input"
+      },
+      "validations": [
+        {
+          "type": "range",
+          "min": 0
+        }
+      ]
+    },
+    {
+      "id": "sqleng_settings.maxIdleConns",
+      "key": "maxIdleConns",
+      "label": "Max idle",
+      "description": "Maximum idle connections as a whole number. Zero retains none. If omitted, Grafana supplies its configured default.",
+      "valueType": "number",
+      "target": "jsonData",
+      "ui": {
+        "component": "input"
+      },
+      "validations": [
+        {
+          "type": "range",
+          "min": 0
+        }
+      ],
+      "disabledWhen": "jsonData.maxIdleConnsAuto == true"
+    },
+    {
+      "id": "sqleng_settings.connMaxLifetime",
+      "key": "connMaxLifetime",
+      "label": "Max lifetime",
+      "description": "Maximum lifetime of a connection in whole seconds. Zero removes the lifetime limit. If omitted, Grafana supplies its configured default.",
+      "valueType": "number",
+      "target": "jsonData",
+      "ui": {
+        "component": "input"
+      },
+      "validations": [
+        {
+          "type": "range",
+          "min": 0
+        }
+      ]
+    },
+    {
+      "id": "sqleng_settings.connectionTimeout",
+      "key": "connectionTimeout",
+      "label": "Connection timeout",
+      "description": "Time to wait for a SQL connection in whole seconds. Zero leaves the connection timeout unset.",
+      "valueType": "number",
+      "target": "jsonData",
+      "role": "transport.timeoutSeconds",
+      "defaultValue": 0,
+      "ui": {
+        "component": "input"
+      },
+      "validations": [
+        {
+          "type": "range",
+          "min": 0
+        }
+      ]
+    },
+    {
+      "id": "sqleng_settings.secureSocksProxyUsername",
+      "key": "secureSocksProxyUsername",
+      "label": "Proxy username",
+      "description": "SOCKS proxy username. Defaults to the data source UID.",
+      "valueType": "string",
+      "target": "jsonData",
+      "dependsOn": "false"
+    },
+    {
+      "id": "secureJsonData_secureSocksProxyPassword",
+      "key": "secureSocksProxyPassword",
+      "label": "Proxy password",
+      "description": "Password for the secure SOCKS proxy.",
+      "valueType": "string",
+      "target": "secureJsonData",
+      "dependsOn": "false"
+    },
+    {
+      "id": "jsonData.timeout",
+      "key": "timeout",
+      "label": "Proxy timeout",
+      "description": "Time in seconds to establish a connection through the secure SOCKS proxy.",
+      "valueType": "number",
+      "target": "jsonData",
+      "dependsOn": "false",
+      "defaultValue": 30
+    },
+    {
+      "id": "jsonData.keepAlive",
+      "key": "keepAlive",
+      "label": "Proxy keep-alive",
+      "description": "TCP keep-alive interval in seconds for the secure SOCKS proxy.",
+      "valueType": "number",
+      "target": "jsonData",
+      "dependsOn": "false",
+      "defaultValue": 30
+    }
+  ],
+  "groups": [
+    {
+      "id": "connection",
+      "title": "Connection",
+      "order": 1,
+      "fieldRefs": [
+        "sqleng_settings.url",
+        "sqleng_settings.database"
+      ]
+    },
+    {
+      "id": "tls-auth",
+      "title": "TLS/SSL Auth",
+      "order": 2,
+      "fieldRefs": [
+        "jsonData.encrypt",
+        "sqleng_settings.tlsSkipVerify",
+        "sqleng_settings.sslRootCertFile",
+        "jsonData.serverName"
+      ]
+    },
+    {
+      "id": "authentication",
+      "title": "Authentication",
+      "order": 3,
+      "fieldRefs": [
+        "jsonData.authenticationType",
+        "sqleng_settings.user",
+        "sqleng_settings.password",
+        "jsonData.keytabFilePath",
+        "jsonData.credentialCache",
+        "jsonData.credentialCacheLookupFile",
+        "azure.authType",
+        "azure_azureCloud",
+        "azure_tenantId",
+        "azure_clientId",
+        "azure_userId",
+        "azure_azureClientSecret"
+      ]
+    },
+    {
+      "id": "connection-limits",
+      "title": "Connection limits",
+      "order": 4,
+      "fieldRefs": [
+        "sqleng_settings.maxOpenConns",
+        "jsonData.maxIdleConnsAuto",
+        "sqleng_settings.maxIdleConns",
+        "sqleng_settings.connMaxLifetime"
+      ]
+    },
+    {
+      "id": "connection-details",
+      "title": "Connection details",
+      "order": 5,
+      "fieldRefs": [
+        "sqleng_settings.timeInterval",
+        "sqleng_settings.connectionTimeout"
+      ]
+    },
+    {
+      "id": "secure-socks-proxy",
+      "title": "Secure SOCKS Proxy",
+      "order": 6,
+      "fieldRefs": [
+        "sqleng_settings.enableSecureSocksProxy"
+      ]
+    },
+    {
+      "id": "kerberos-advanced",
+      "title": "Windows AD: Advanced Settings",
+      "order": 7,
+      "fieldRefs": [
+        "jsonData.UDPConnectionLimit",
+        "jsonData.enableDNSLookupKDC",
+        "jsonData.configFilePath"
+      ]
+    }
+  ],
+  "baseFields": [
+    {
+      "from": "sqleng_settings",
+      "exclude": [
+        "sqleng_settings.tlsConfigurationMethod",
+        "sqleng_settings.sslCertFile",
+        "sqleng_settings.sslKeyFile",
+        "sqleng_settings.servername",
+        "sqleng_settings.tlsCACert",
+        "sqleng_settings.tlsClientCert",
+        "sqleng_settings.tlsClientKey"
+      ],
+      "patch": {
+        "sqleng_settings.url": {
+          "label": "Host",
+          "placeholder": "localhost:1433",
+          "description": "SQL Server host or named instance with an optional port, such as localhost:1433. Omit the URL scheme."
+        },
+        "sqleng_settings.timeInterval": {
+          "label": "Min time interval",
+          "description": "Lower limit for the automatic group-by interval, such as 1m."
+        },
+        "sqleng_settings.enableSecureSocksProxy": {
+          "label": "Enabled",
+          "defaultValue": false,
+          "description": "Route SQL connections through the private data source connection configured in Grafana. Available when the secure SOCKS proxy is enabled on the server."
+        },
+        "sqleng_settings.database": {
+          "label": "Database",
+          "required": true,
+          "placeholder": "database name",
+          "description": "Name of the SQL Server database to query. Older configurations may store the name in the root database field, which the editor migrates here."
+        }
+      }
+    }
+  ],
+  "instructions": [
+    {
+      "tags": [
+        "llm",
+        "auth"
+      ],
+      "msg": "For Azure AD Authentication, nest authType and its public fields inside jsonData.azureCredentials. For Current User, also set jsonData.oauthPassThru and jsonData.disableGrafanaCache to true. For SQL Server Authentication or Windows AD username/password, put user at the data source root and password in secureJsonData."
+    }
+  ]
+}
